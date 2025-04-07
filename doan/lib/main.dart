@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
+import 'screens/account_screen.dart';     
+import 'screens/register_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
+    return MaterialApp(
+      title: 'App Đặt Vé DNNT',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+        useMaterial3: true,
       ),
+      home: const AccountScreen(), 
+      
+      routes: {
+        '/dangky': (context) => const DangKyScreen(),
+        '/dangnhap': (context) => const DangNhapScreen(),
+      },
     );
   }
 }
