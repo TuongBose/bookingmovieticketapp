@@ -41,6 +41,7 @@ class DatabaseHelper {
             DURATION INTEGER,
             RELEASEDATE DATE,
             POSTERURL TEXT,
+            AGE INTEGER,
             RATING FLOAT
           )
         ''');

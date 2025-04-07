@@ -1,4 +1,4 @@
-import 'package:doan/screens/home_screen.dart';
+import 'package:doan/screens/default_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,13 +11,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'App Đặt Vé DNNT',
+      title: 'App Đặt Vé Galaxy Cinema',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const DefaultScreen(),
     );
   }
 }
+
+

@@ -5,6 +5,7 @@ class Movie {
   final int duration;
   final String releaseDate;
   final String posterUrl;
+  final int age;
   final double rating;
 
   Movie({
@@ -14,6 +15,7 @@ class Movie {
     required this.duration,
     required this.releaseDate,
     required this.posterUrl,
+    required this.age,
     required this.rating,
   });
 
@@ -24,6 +26,7 @@ class Movie {
     duration: map['DURATION'],
     releaseDate: map['RELEASEDATE'],
     posterUrl: map['POSTERURL'],
+    age: map['AGE'],
     rating: map['RATING'],
   );
 
@@ -34,6 +37,7 @@ class Movie {
     'DURATION': duration,
     'RELEASEDATE': releaseDate,
     'POSTERURL': posterUrl,
+    'AGE':age,
     'RATING': rating,
   };
 }
