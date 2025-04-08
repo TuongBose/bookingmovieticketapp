@@ -3,8 +3,9 @@ class Movie {
   final String name;
   final String description;
   final int duration;
-  final String releaseDate;
+  final DateTime releaseDate;
   final String posterUrl;
+  final String bannerUrl;
   final int age;
   final double rating;
 
@@ -15,6 +16,7 @@ class Movie {
     required this.duration,
     required this.releaseDate,
     required this.posterUrl,
+    required this.bannerUrl,
     required this.age,
     required this.rating,
   });
@@ -24,8 +26,9 @@ class Movie {
     name: map['NAME'],
     description: map['DESCRIPTION'],
     duration: map['DURATION'],
-    releaseDate: map['RELEASEDATE'],
+    releaseDate: DateTime.parse(map['RELEASEDATE']),
     posterUrl: map['POSTERURL'],
+    bannerUrl: map['BANNERURL'],
     age: map['AGE'],
     rating: map['RATING'],
   );
@@ -37,7 +40,8 @@ class Movie {
     'DURATION': duration,
     'RELEASEDATE': releaseDate,
     'POSTERURL': posterUrl,
-    'AGE':age,
+    'BANNERURL': bannerUrl,
+    'AGE': age,
     'RATING': rating,
   };
 }

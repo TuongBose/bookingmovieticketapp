@@ -39,8 +39,9 @@ class DatabaseHelper {
             NAME TEXT,
             DESCRIPTION TEXT,
             DURATION INTEGER,
-            RELEASEDATE DATE,
+            RELEASEDATE DATETIME,
             POSTERURL TEXT,
+            BANNERURL TEXT,
             AGE INTEGER,
             RATING FLOAT
           )

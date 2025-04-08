@@ -12,6 +12,7 @@ dependencies:
   sqflite: ^2.0.0
   path_provider: ^2.0.2
   provider: ^6.0.5
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
@@ -26,3 +27,4 @@ flutter:
     - assets/images/login_banner.png
     - assets/images/movies/mai_poster.webp
     - assets/images/movies/botubaothu_poster.jpg
+    - assets/images/movies/mai_banner.jpg
