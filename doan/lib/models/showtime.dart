@@ -2,8 +2,8 @@ class Showtime {
   final int? id;
   final int movieId;
   final int roomId;
-  final String showDate;
-  final String startTime;
+  final DateTime showDate;
+  final DateTime startTime;
   final int price;
 
   Showtime({
@@ -19,8 +19,8 @@ class Showtime {
     id: map['ID'],
     movieId: map['MOVIEID'],
     roomId: map['ROOMID'],
-    showDate: map['SHOWDATE'],
-    startTime: map['STARTTIME'],
+    showDate: DateTime.parse(map['SHOWDATE']),
+    startTime: DateTime.parse(map['STARTTIME']),
     price: map['PRICE'],
   );
 

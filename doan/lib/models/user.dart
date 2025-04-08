@@ -5,8 +5,8 @@ class User {
   final String password;
   final String phoneNumber;
   final String address;
-  final String dateOfBirth;
-  final String createdAt;
+  final DateTime dateOfBirth;
+  final DateTime createdAt;
   final bool isActive;
   final bool roleName;
 
@@ -30,8 +30,8 @@ class User {
     password: map['PASSWORD'],
     phoneNumber: map['PHONENUMBER'],
     address: map['ADDRESS'],
-    dateOfBirth: map['DATEOFBIRTH'],
-    createdAt: map['CREATEDAT'],
+    dateOfBirth: DateTime.parse(map['DATEOFBIRTH']),
+    createdAt: DateTime.parse(map['CREATEDAT']),
     isActive: map['ISACTIVE'] == 1,
     roleName: map['ROLENAME'] == 1,
   );

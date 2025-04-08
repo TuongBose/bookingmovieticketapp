@@ -1,7 +1,10 @@
+import 'package:doan/data/cinema_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart'; // Thêm thư viện intl để định dạng ngày tháng
 import 'package:doan/models/movie.dart';
+
+import '../models/cinema.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movie});
@@ -15,6 +18,9 @@ class MovieDetailScreen extends StatefulWidget {
 class _MovieDetailScreenState extends State<MovieDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  Cinema? selectedCinema;
+  int selectedIndex  = 0;
+  DateTime selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -214,7 +220,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                         Row(
                           children: [
                             _buildInfoTag(
-                              widget.movie.age.toString(),
+                              'T${widget.movie.age.toString()}',
                               Colors.redAccent,
                             ),
                             const SizedBox(width: 8),
@@ -332,26 +338,108 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
               SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: Icon(Icons.theaters),
-                  label: Text("Cinema"),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(25.0),
+                        ),
+                      ),
+                      builder: (context) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Chọn rạp chiếu",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Flexible(
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: sampleCinemas.length,
+                                  itemBuilder: (context, index) {
+                                    final cinema = sampleCinemas[index];
+                                    final isSelected =
+                                        cinema.name == selectedCinema?.name;
+
+                                    return ListTile(
+                                      leading: Icon(Icons.local_movies),
+                                      title: Text(
+                                        cinema.name,
+                                        style: TextStyle(
+                                          fontWeight:
+                                              isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                          color:
+                                              isSelected
+                                                  ? Colors.blue
+                                                  : Colors.black,
+                                        ),
+                                      ),
+                                      onTap: () {
+                                        setState(() {
+                                          selectedCinema = cinema;
+                                        });
+                                        Navigator.pop(
+                                          context,
+                                        ); // Đóng sheet sau khi chọn
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blueAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "Done",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  icon: const Icon(Icons.theaters),
+                  label: Text(selectedCinema?.name ?? "Cinema"),
                 ),
-              ), // Placeholder Dropdown
+              ),
+              // Placeholder Dropdown
             ],
           ),
-          SizedBox(height: 16),
-          Text("Chọn ngày (Placeholder)"),
-          SizedBox(height: 8),
+          SizedBox(height: 12),
           // Container(height: 50, color: Colors.grey[200], child: Center(child: Text("Horizontal Date List Placeholder"))), // Placeholder List ngày ngang
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: List.generate(7, (index) {
                 final date = DateTime.now().add(Duration(days: index));
-                final isSelected = index == 0; // Giả sử chọn ngày đầu tiên
+                final isSelected = selectedIndex == index;
                 return InkWell(
                   onTap: () {
-                    /* Xử lý chọn ngày */
+                    setState(() {
+                      selectedIndex = index;
+                      selectedDate = date;
+                    });
                   },
                   child: Container(
                     margin: EdgeInsets.only(right: 8),
@@ -366,17 +454,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                         Text(
                           index == 0
                               ? 'Hôm nay'
-                              : DateFormat(
-                                'EEE',
-                                'vi_VN',
-                              ).format(date), // Thứ (Tiếng Việt)
+                              : DateFormat('EEE', 'vi_VN').format(date),
                           style: TextStyle(
                             fontSize: 12,
                             color: isSelected ? Colors.white : Colors.black54,
                           ),
                         ),
                         Text(
-                          DateFormat('dd/MM').format(date), // Ngày/Tháng
+                          DateFormat('dd/MM').format(date),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: isSelected ? Colors.white : Colors.black,
@@ -390,16 +475,21 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             ),
           ),
 
+
           SizedBox(height: 8),
-          Text(
-            DateFormat(
-              "'Thứ' EEEE, 'ngày' dd 'tháng' MM yyyy",
-              'vi_VN',
-            ).format(DateTime.now()),
-            style: TextStyle(color: Colors.grey[600]),
+          Center(
+            child: Text(
+              DateFormat(
+                "'Thứ' EEEE, 'ngày' dd 'tháng' MM yyyy",
+                'vi_VN',
+              ).format(selectedDate),
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ),
+
           // Ngày được chọn
           SizedBox(height: 16),
+
           // Phần danh sách rạp và suất chiếu (Placeholder)
           Text(
             "Galaxy Nguyễn Du",

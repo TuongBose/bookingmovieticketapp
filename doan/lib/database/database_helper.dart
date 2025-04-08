@@ -25,7 +25,7 @@ class DatabaseHelper {
             PASSWORD TEXT,
             PHONENUMBER TEXT,
             ADDRESS TEXT,
-            DATEOFBIRTH DATE,
+            DATEOFBIRTH DATETIME,
             CREATEDAT DATETIME,
             ISACTIVE BOOLEAN,
             ROLENAME BOOLEAN
@@ -75,7 +75,7 @@ class DatabaseHelper {
             ID INTEGER PRIMARY KEY,
             MOVIEID INTEGER,
             ROOMID INTEGER,
-            SHOWDATE DATE,
+            SHOWDATE DATETIME,
             STARTTIME DATETIME,
             PRICE INTEGER,
             FOREIGN KEY(MOVIEID) REFERENCES MOVIES(ID),
