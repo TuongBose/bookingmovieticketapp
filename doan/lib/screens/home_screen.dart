@@ -1,7 +1,8 @@
 import 'package:doan/screens/movie_detail_screen.dart';
+import 'package:doan/services/MovieService.dart';
 import 'package:flutter/material.dart';
-import 'package:doan/data/movie_data.dart';
-import 'package:doan/models/movie.dart';
+
+import '../models/movie.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,6 +13,23 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  List<Movie> _movies = [];
+  bool _isLoading = true;
+
+  void loadMovies() async {
+    MovieService movieService = MovieService();
+    final movies = await movieService.getNowPlaying();
+    setState(() {
+      _movies = movies;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadMovies();
+  }
 
   Widget _buildTabItem(String title, int index) {
     final bool isSelected = _selectedIndex == index;
@@ -88,7 +106,7 @@ class HomeScreenState extends State<HomeScreen> {
             child: IndexedStack(
               index: _selectedIndex,
               children: [
-                buildMovieGrid(sampleMovies),
+                buildMovieGrid(),
                 const Center(child: Text("Danh sách phim sắp chiếu")),
               ],
             ),
@@ -98,11 +116,14 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildMovieGrid(List<Movie> movies) {
+  Widget buildMovieGrid() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(),);
+    }
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GridView.builder(
-        itemCount: movies.length,
+        itemCount: _movies.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           childAspectRatio: 0.65,
@@ -110,7 +131,7 @@ class HomeScreenState extends State<HomeScreen> {
           mainAxisSpacing: 10,
         ),
         itemBuilder: (context, index) {
-          final movie = movies[index];
+          final movie = _movies[index];
           return MovieCard(movie: movie);
         },
       ),
@@ -141,15 +162,13 @@ class MovieCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
+                  child: Image.network(
                     movie.posterUrl,
                     fit: BoxFit.cover,
-                    frameBuilder: (
-                      context,
-                      child,
-                      frame,
-                      wasSynchronouslyLoaded,
-                    ) {
+                    frameBuilder: (context,
+                        child,
+                        frame,
+                        wasSynchronouslyLoaded,) {
                       if (wasSynchronouslyLoaded) return child;
                       return AnimatedOpacity(
                         opacity: frame == null ? 0 : 1,
@@ -193,7 +212,7 @@ class MovieCard extends StatelessWidget {
                         const Icon(Icons.star, color: Colors.white, size: 14),
                         const SizedBox(width: 3),
                         Text(
-                          '${movie.rating}',
+                          '${movie.voteAverage}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -217,7 +236,7 @@ class MovieCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      'T${movie.age}',
+                      '${movie.ageRating}',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 10,

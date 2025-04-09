@@ -19,15 +19,27 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   Cinema? selectedCinema;
-  int selectedIndex  = 0;
+  int selectedIndex = 0;
   DateTime selectedDate = DateTime.now();
+  ScrollController _scrollController = ScrollController();
+  double _titleOpacity = 0.0;
 
   @override
   void initState() {
     super.initState();
+    // Khởi tạo DateFormatting
     initializeDateFormatting('vi_VN', null).then((_) {
       setState(() {
         // Lúc này bạn có thể dùng DateFormat với 'vi_VN'
+      });
+    });
+
+    // Khởi tạo ScrollController
+    _scrollController.addListener(() {
+      double offset = _scrollController.offset;
+      setState(() {
+        // Tùy ngưỡng: ví dụ sau khi scroll > 180px thì hiện tiêu đề
+        _titleOpacity = (offset > 180) ? 1.0 : 0.0;
       });
     });
 
@@ -52,6 +64,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     return Scaffold(
       // Sử dụng CustomScrollView để có hiệu ứng co dãn header
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: <Widget>[
           // 1. App Bar co dãn với ảnh nền lớn
           SliverAppBar(
@@ -60,10 +73,20 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             pinned: true,
             // Giữ App Bar luôn hiển thị khi cuộn lên
             floating: false,
-            backgroundColor: Colors.black,
+            backgroundColor: Colors.white,
             // Màu nền khi co lại
             elevation: 0,
             // Bỏ shadow
+            title: AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: _titleOpacity,
+              child: Center(
+                child: Text(
+                  widget.movie.name,
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ),
             leading: IconButton(
               // Nút Back
               icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -85,7 +108,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                 fit: StackFit.expand,
                 children: [
                   // Ảnh nền lớn
-                  Image.asset(
+                  Image.network(
                     // Hoặc Image.network nếu URL từ mạng
                     widget.movie.bannerUrl,
                     fit: BoxFit.cover,
@@ -149,7 +172,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                   // Ảnh Poster nhỏ
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
+                    child: Image.network(
                       // Hoặc Image.network
                       widget.movie.posterUrl,
                       height: 150, // Chiều cao cố định cho poster
@@ -188,7 +211,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${widget.movie.rating}',
+                              '${widget.movie.voteAverage}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -220,7 +243,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                         Row(
                           children: [
                             _buildInfoTag(
-                              'T${widget.movie.age.toString()}',
+                              'T${widget.movie.ageRating}',
                               Colors.redAccent,
                             ),
                             const SizedBox(width: 8),
@@ -231,7 +254,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                             ),
                             const SizedBox(width: 8),
                             _buildInfoTag(
-                              dateFormatter.format(widget.movie.releaseDate),
+                              '${widget.movie.releaseDate}',
                               Colors.grey,
                               icon: Icons.calendar_today,
                             ),
@@ -364,39 +387,52 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               Flexible(
                                 child: ListView.builder(
                                   shrinkWrap: true,
-                                  itemCount: sampleCinemas.length,
+                                  itemCount: sampleCinemas.length + 1, // Thêm 1 cho "Tất cả rạp"
                                   itemBuilder: (context, index) {
-                                    final cinema = sampleCinemas[index];
-                                    final isSelected =
-                                        cinema.name == selectedCinema?.name;
-
-                                    return ListTile(
-                                      leading: Icon(Icons.local_movies),
-                                      title: Text(
-                                        cinema.name,
-                                        style: TextStyle(
-                                          fontWeight:
-                                              isSelected
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                          color:
-                                              isSelected
-                                                  ? Colors.blue
-                                                  : Colors.black,
+                                    if (index == 0) {
+                                      // Mục "Tất cả rạp"
+                                      final isSelected = selectedCinema == null;
+                                      return ListTile(
+                                        leading: const Icon(Icons.theaters),
+                                        title: Text(
+                                          'Tất cả rạp',
+                                          style: TextStyle(
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            color: isSelected ? Colors.blue : Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                      onTap: () {
-                                        setState(() {
-                                          selectedCinema = cinema;
-                                        });
-                                        Navigator.pop(
-                                          context,
-                                        ); // Đóng sheet sau khi chọn
-                                      },
-                                    );
+                                        onTap: () {
+                                          setState(() {
+                                            selectedCinema = null; // Không chọn rạp cụ thể
+                                          });
+                                          Navigator.pop(context);
+                                        },
+                                      );
+                                    } else {
+                                      // Các rạp còn lại
+                                      final cinema = sampleCinemas[index - 1]; // -1 vì đã dành index 0 cho "Tất cả rạp"
+                                      final isSelected = cinema.name == selectedCinema?.name;
+                                      return ListTile(
+                                        leading: const Icon(Icons.local_movies),
+                                        title: Text(
+                                          cinema.name,
+                                          style: TextStyle(
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            color: isSelected ? Colors.blue : Colors.black,
+                                          ),
+                                        ),
+                                        onTap: () {
+                                          setState(() {
+                                            selectedCinema = cinema;
+                                          });
+                                          Navigator.pop(context);
+                                        },
+                                      );
+                                    }
                                   },
                                 ),
                               ),
+
                               const SizedBox(height: 10),
                               ElevatedButton(
                                 onPressed: () {
@@ -475,12 +511,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             ),
           ),
 
-
           SizedBox(height: 8),
           Center(
             child: Text(
               DateFormat(
-                "'Thứ' EEEE, 'ngày' dd 'tháng' MM yyyy",
+                "EEEE, 'ngày' dd 'tháng' MM yyyy",
                 'vi_VN',
               ).format(selectedDate),
               style: TextStyle(color: Colors.grey[600]),
@@ -569,10 +604,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           _buildInfoRow('Diễn viên:', 'Đang cập nhật'),
           _buildInfoRow('Thể loại:', 'Hành động, Phiêu lưu'),
           // Lấy từ dữ liệu phim
-          _buildInfoRow(
-            'Ngày phát hành:',
-            DateFormat('dd/MM/yyyy').format(movie.releaseDate),
-          ),
+          _buildInfoRow('Ngày phát hành:', '${movie.releaseDate}'),
           _buildInfoRow('Thời lượng:', '${movie.duration} phút'),
         ],
       ),
@@ -636,6 +668,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false; // Không cần rebuild vì TabBar không thay đổi
+    return true; // Không cần rebuild vì TabBar không thay đổi
   }
 }
