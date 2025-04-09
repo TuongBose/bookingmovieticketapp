@@ -1,3 +1,4 @@
+import 'package:doan/screens/cinema_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -32,7 +33,7 @@ class MyDefaultScreenState extends State<MyDefaultScreen> {
   );
   static final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    const Text('Rạp phim', style: optionStyle),
+    CinemaScreen(),
     const Text('Điện ảnh', style: optionStyle),
     const AccountScreen()
   ];
