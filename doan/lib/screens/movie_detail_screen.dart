@@ -4,7 +4,10 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart'; // Thêm thư viện intl để định dạng ngày tháng
 import 'package:doan/models/movie.dart';
 
+import '../data/room_data.dart';
+import '../data/showtime_data.dart';
 import '../models/cinema.dart';
+import '../models/showtime.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   const MovieDetailScreen({super.key, required this.movie});
@@ -24,6 +27,43 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   ScrollController _scrollController = ScrollController();
   double _titleOpacity = 0.0;
 
+  // Lấy danh sách cinemas theo movie
+  List<Cinema> getCinemasByMovie(int movieId) {
+    final roomIds =
+    sampleShowtimes
+        .where((s) => s.movieId == movieId)
+        .map((s) => s.roomId)
+        .toSet();
+
+    final cinemaIds =
+    sampleRooms
+        .where((room) => roomIds.contains(room.id))
+        .map((room) => room.cinemaId)
+        .toSet();
+
+    return sampleCinemas.where((c) => cinemaIds.contains(c.id)).toList();
+  }
+
+  // Lấy suất chiếu theo phim, rạp, ngày
+  List<Showtime> getShowtimes(int movieId, int cinemaId, DateTime date) {
+    final roomIds =
+    sampleRooms
+        .where((room) => room.cinemaId == cinemaId)
+        .map((room) => room.id)
+        .toList();
+
+    return sampleShowtimes
+        .where(
+          (show) =>
+      show.movieId == movieId &&
+          roomIds.contains(show.roomId) &&
+          show.showDate.year == date.year &&
+          show.showDate.month == date.month &&
+          show.showDate.day == date.day,
+    )
+        .toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +73,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         // Lúc này bạn có thể dùng DateFormat với 'vi_VN'
       });
     });
-
+    
     // Khởi tạo ScrollController
     _scrollController.addListener(() {
       double offset = _scrollController.offset;
@@ -243,7 +283,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                         Row(
                           children: [
                             _buildInfoTag(
-                              'T${widget.movie.ageRating}',
+                              '${widget.movie.ageRating}',
                               Colors.redAccent,
                             ),
                             const SizedBox(width: 8),
@@ -254,7 +294,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                             ),
                             const SizedBox(width: 8),
                             _buildInfoTag(
-                              '${widget.movie.releaseDate}',
+                              DateFormat('dd/MM/yyyy').format(DateTime.parse(widget.movie.releaseDate)),
                               Colors.grey,
                               icon: Icons.calendar_today,
                             ),
@@ -305,33 +345,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                 // Nội dung Tab "Tin Tức"
                 Center(child: Text('Nội dung Tin Tức (chưa có)')),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper Widget để tạo các tag thông tin (T16, Thời lượng, Ngày)
-  Widget _buildInfoTag(String text, Color color, {IconData? icon}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        // border: Border.all(color: color), // Viền nếu muốn
-        color: color.withOpacity(0.15), // Nền mờ
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) Icon(icon, size: 12, color: color),
-          if (icon != null) const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -524,55 +537,74 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
           // Ngày được chọn
           SizedBox(height: 16),
+          Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: getCinemasByMovie(widget.movie.id).map((cinema) {
+              final showtimes = getShowtimes(widget.movie.id,cinema.id, selectedDate);
 
-          // Phần danh sách rạp và suất chiếu (Placeholder)
-          Text(
-            "Galaxy Nguyễn Du",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(
-            "2D PHỤ ĐỀ",
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
-          SizedBox(height: 8),
-          Wrap(
-            // Dùng Wrap để các nút giờ tự xuống dòng
-            spacing: 8.0, // Khoảng cách ngang
-            runSpacing: 8.0, // Khoảng cách dọc
-            children:
-                [
-                      '13:30',
-                      '14:15',
-                      '15:00',
-                      '15:45',
-                      '16:30',
-                      '17:15',
-                      '19:00',
-                      '19:45',
-                      '20:15',
-                      '21:25',
-                      '22:00',
-                      '22:30',
-                    ]
-                    .map(
-                      (time) => OutlinedButton(
-                        onPressed: () {},
-                        child: Text(time),
+              if (showtimes.isEmpty) return SizedBox();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cinema.name,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "2D PHỤ ĐỀ", // Bạn có thể thay bằng định dạng động nếu cần
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: showtimes.map((show) {
+                      final time = TimeOfDay.fromDateTime(show.startTime);
+                      return OutlinedButton(
+                        onPressed: () {
+                          // Xử lý chọn giờ chiếu, ví dụ chuyển qua màn hình đặt vé
+                        },
                         style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           side: BorderSide(color: Colors.grey[400]!),
                           textStyle: TextStyle(fontSize: 14),
                           foregroundColor: Colors.black87,
                         ),
-                      ),
-                    )
-                    .toList(),
+                        child: Text(time.format(context)),
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 20),
+                ],
+              );
+            }).toList(),),
+        ],
+      ),
+    );
+  }
+
+  // Helper Widget để tạo các tag thông tin (T16, Thời lượng, Ngày)
+  Widget _buildInfoTag(String text, Color color, {IconData? icon}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        // border: Border.all(color: color), // Viền nếu muốn
+        color: color.withOpacity(0.15), // Nền mờ
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) Icon(icon, size: 12, color: color),
+          if (icon != null) const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 11,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          SizedBox(height: 20),
-          // Thêm suất chiếu rạp khác nếu cần
         ],
       ),
     );
@@ -600,11 +632,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           ),
           const SizedBox(height: 24),
           // Thêm thông tin khác nếu có (Đạo diễn, Diễn viên,...)
-          _buildInfoRow('Đạo diễn:', 'Đang cập nhật'),
-          _buildInfoRow('Diễn viên:', 'Đang cập nhật'),
+          _buildInfoRow('Đạo diễn:', '${widget.movie.director}'),
+          _buildInfoRow('Diễn viên:', '${widget.movie.casts?.join(", ")}, ...'),
           _buildInfoRow('Thể loại:', 'Hành động, Phiêu lưu'),
           // Lấy từ dữ liệu phim
-          _buildInfoRow('Ngày phát hành:', '${movie.releaseDate}'),
+          _buildInfoRow('Ngày phát hành:', DateFormat('dd/MM/yyyy').format(DateTime.parse(movie.releaseDate))),
           _buildInfoRow('Thời lượng:', '${movie.duration} phút'),
         ],
       ),

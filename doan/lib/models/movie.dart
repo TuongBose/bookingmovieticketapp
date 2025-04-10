@@ -8,6 +8,8 @@ class Movie {
   final String bannerUrl;
   final String? ageRating;
   final double voteAverage;
+  final List<String>? casts;
+  final String? director;
 
   Movie({
     required this.id,
@@ -19,5 +21,7 @@ class Movie {
     required this.bannerUrl,
     this.ageRating,
     required this.voteAverage,
+    this.casts,
+    this.director
   });
 }

@@ -13,14 +13,17 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  List<Movie> _movies = [];
+  List<Movie> _moviesNowPlaying = [];
+  List<Movie> _moviesUpComing = [];
   bool _isLoading = true;
 
   void loadMovies() async {
     MovieService movieService = MovieService();
-    final movies = await movieService.getNowPlaying();
+    final moviesNowPlaying = await movieService.getNowPlaying();
+    final moviesUpComing = await movieService.getUpComing();
     setState(() {
-      _movies = movies;
+      _moviesNowPlaying = moviesNowPlaying;
+      _moviesUpComing=moviesUpComing;
       _isLoading = false;
     });
   }
@@ -106,8 +109,8 @@ class HomeScreenState extends State<HomeScreen> {
             child: IndexedStack(
               index: _selectedIndex,
               children: [
-                buildMovieGrid(),
-                const Center(child: Text("Danh sách phim sắp chiếu")),
+                buildMoviesNowPlayingGrid(),
+                buildMoviesUpComingGrid()
               ],
             ),
           ),
@@ -116,14 +119,14 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildMovieGrid() {
+  Widget buildMoviesUpComingGrid() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator(),);
     }
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GridView.builder(
-        itemCount: _movies.length,
+        itemCount: _moviesUpComing.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           childAspectRatio: 0.65,
@@ -131,7 +134,29 @@ class HomeScreenState extends State<HomeScreen> {
           mainAxisSpacing: 10,
         ),
         itemBuilder: (context, index) {
-          final movie = _movies[index];
+          final movie = _moviesUpComing[index];
+          return MovieCard(movie: movie);
+        },
+      ),
+    );
+  }
+
+  Widget buildMoviesNowPlayingGrid() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(),);
+    }
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: GridView.builder(
+        itemCount: _moviesNowPlaying.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.65,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemBuilder: (context, index) {
+          final movie = _moviesNowPlaying[index];
           return MovieCard(movie: movie);
         },
       ),

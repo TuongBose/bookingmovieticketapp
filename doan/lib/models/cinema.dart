@@ -1,11 +1,11 @@
 class Cinema {
-  final int? id;
+  final int id;
   final String name;
   final String location;
   final String phoneNumber;
 
   Cinema({
-    this.id,
+    required this.id,
     required this.name,
     required this.location,
     required this.phoneNumber,
