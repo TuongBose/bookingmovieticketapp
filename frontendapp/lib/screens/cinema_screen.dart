@@ -6,19 +6,19 @@ class CinemaScreen extends StatelessWidget {
       'name': 'Galaxy Sala',
       'address': 'Tầng 3, Thiso Mall Sala, 10 Mai Chí Thọ, P...',
       'phone': '1900 2224',
-      'image': 'assets/images/movies/botubaothu_poster.jpg',
+      'image': 'assets/images/bear.jpg',
     },
     {
       'name': 'Galaxy Tân Bình',
       'address': '246 Nguyễn Hồng Đào, Q.TB, Tp.HCM',
       'phone': '1900 2224',
-      'image': 'assets/images/movies/mai_poster.webp',
+      'image': 'assets/images/bear.jpg',
     },
     {
       'name': 'Galaxy Kinh Dương Vương',
       'address': '718bis Kinh Dương Vương, Q6, TpHCM',
       'phone': '1900 2224',
-      'image': 'assets/images/movies/botubaothu_poster.jpg',
+      'image': 'assets/images/bear.jpg',
     },
     // Thêm các rạp khác ở đây...
   ];

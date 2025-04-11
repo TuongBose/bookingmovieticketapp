@@ -1,12 +1,17 @@
+import 'package:frontendapp/screens/seat_selection_screen.dart';
+
 import '../data/cinema_data.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart'; // Thêm thư viện intl để định dạng ngày tháng
+import '../data/seat_data.dart';
 import '../models/movie.dart';
 
 import '../data/room_data.dart';
 import '../data/showtime_data.dart';
 import '../models/cinema.dart';
+import '../models/room.dart';
+import '../models/seat.dart';
 import '../models/showtime.dart';
 
 class MovieDetailScreen extends StatefulWidget {
@@ -63,6 +68,16 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     )
         .toList();
   }
+
+  Room getRoomById(int roomId) {
+    return sampleRooms.firstWhere((room) => room.id == roomId);
+  }
+
+  List<Seat> getSeatsByRoomId(int roomId) {
+    return sampleSeats.where((seat) => seat.roomId == roomId).toList();
+  }
+
+
 
   @override
   void initState() {
@@ -562,7 +577,19 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                       final time = TimeOfDay.fromDateTime(show.startTime);
                       return OutlinedButton(
                         onPressed: () {
-                          // Xử lý chọn giờ chiếu, ví dụ chuyển qua màn hình đặt vé
+                          final room = getRoomById(show.roomId); // Lấy phòng chiếu từ ID
+                          final seats = getSeatsByRoomId(show.roomId); // Lấy danh sách ghế của phòng
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SeatSelectionScreen(
+                                room: room,
+                                allSeats: seats,
+                                showtime: show, // nếu bạn muốn truyền thông tin showtime
+                              ),
+                            ),
+                          );
                         },
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
