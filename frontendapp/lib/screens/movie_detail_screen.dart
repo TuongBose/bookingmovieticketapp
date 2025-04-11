@@ -15,9 +15,11 @@ import '../models/seat.dart';
 import '../models/showtime.dart';
 
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movie});
+  const MovieDetailScreen({super.key, required this.movie, required this.selectedLocation});
 
   final Movie movie; // Nhận movie object từ HomeScreen
+  final String selectedLocation;
+
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
 }
@@ -32,21 +34,46 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   ScrollController _scrollController = ScrollController();
   double _titleOpacity = 0.0;
 
-  // Lấy danh sách cinemas theo movie
+  // Lấy danh sách cinemas theo movie và thành phố đã chọn
   List<Cinema> getCinemasByMovie(int movieId) {
-    final roomIds =
-    sampleShowtimes
-        .where((s) => s.movieId == movieId)
+    // Bước 1: Lọc danh sách rạp theo thành phố đã chọn
+    final filteredCinemasByCity = sampleCinemas
+        .where((c) =>
+    widget.selectedLocation == "Toàn quốc" ||
+        c.city == widget.selectedLocation)
+        .toList();
+
+    // Bước 2: Lấy danh sách cinemaIds từ các rạp đã lọc
+    final cinemaIds = filteredCinemasByCity.map((c) => c.id).toSet();
+
+    // Bước 3: Lấy danh sách roomIds từ các rạp đã lọc
+    final roomIds = sampleRooms
+        .where((room) => cinemaIds.contains(room.cinemaId))
+        .map((room) => room.id)
+        .toSet();
+
+    // Bước 4: Lấy danh sách suất chiếu của phim tại các phòng đã lọc
+    final showtimeRoomIds = sampleShowtimes
+        .where((s) => s.movieId == movieId && roomIds.contains(s.roomId))
         .map((s) => s.roomId)
         .toSet();
 
-    final cinemaIds =
-    sampleRooms
-        .where((room) => roomIds.contains(room.id))
+    // Bước 5: Lấy lại danh sách cinemaIds từ các roomIds có suất chiếu
+    final finalCinemaIds = sampleRooms
+        .where((room) => showtimeRoomIds.contains(room.id))
         .map((room) => room.cinemaId)
         .toSet();
 
-    return sampleCinemas.where((c) => cinemaIds.contains(c.id)).toList();
+    // Bước 6: Trả về danh sách rạp cuối cùng
+    final result = filteredCinemasByCity
+        .where((c) => finalCinemaIds.contains(c.id))
+        .toList();
+
+    // Debug
+    print("Selected Location: ${widget.selectedLocation}");
+    print("Filtered Cinemas: ${result.map((c) => "${c.name} (${c.city})").toList()}");
+
+    return result;
   }
 
   // Lấy suất chiếu theo phim, rạp, ngày
@@ -369,11 +396,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
   // Widget xây dựng nội dung cho Tab "Suất Chiếu" (hiện tại là placeholder)
   Widget _buildSuatChieuTabContent() {
-    // Đây là phần phức tạp, cần layout giống ảnh: Dropdown City/Cinema, List ngày, List suất chiếu theo rạp
-    // Tạm thời để placeholder
+    // Lấy danh sách rạp đã lọc theo movieId và selectedLocation
+    final filteredCinemas = getCinemasByMovie(widget.movie.id);
+
     return SingleChildScrollView(
-      // Cho phép cuộn nếu nội dung dài
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -381,12 +408,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: Icon(Icons.location_city),
-                  label: Text("City"),
+                  onPressed: () {
+                    // Có thể thêm logic để thay đổi thành phố nếu cần
+                  },
+                  icon: const Icon(Icons.location_city),
+                  label: Text(widget.selectedLocation),
                 ),
-              ), // Placeholder Dropdown
-              SizedBox(width: 10),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
@@ -404,7 +433,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
+                              const Text(
                                 "Chọn rạp chiếu",
                                 style: TextStyle(
                                   fontSize: 18,
@@ -415,7 +444,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               Flexible(
                                 child: ListView.builder(
                                   shrinkWrap: true,
-                                  itemCount: sampleCinemas.length + 1, // Thêm 1 cho "Tất cả rạp"
+                                  itemCount: filteredCinemas.length + 1, // Thêm 1 cho "Tất cả rạp"
                                   itemBuilder: (context, index) {
                                     if (index == 0) {
                                       // Mục "Tất cả rạp"
@@ -425,27 +454,32 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                         title: Text(
                                           'Tất cả rạp',
                                           style: TextStyle(
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
                                             color: isSelected ? Colors.blue : Colors.black,
                                           ),
                                         ),
                                         onTap: () {
                                           setState(() {
-                                            selectedCinema = null; // Không chọn rạp cụ thể
+                                            selectedCinema = null;
                                           });
                                           Navigator.pop(context);
                                         },
                                       );
                                     } else {
-                                      // Các rạp còn lại
-                                      final cinema = sampleCinemas[index - 1]; // -1 vì đã dành index 0 cho "Tất cả rạp"
-                                      final isSelected = cinema.name == selectedCinema?.name;
+                                      // Các rạp đã lọc
+                                      final cinema = filteredCinemas[index - 1];
+                                      final isSelected =
+                                          cinema.name == selectedCinema?.name;
                                       return ListTile(
                                         leading: const Icon(Icons.local_movies),
                                         title: Text(
                                           cinema.name,
                                           style: TextStyle(
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            fontWeight: isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
                                             color: isSelected ? Colors.blue : Colors.black,
                                           ),
                                         ),
@@ -460,7 +494,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                   },
                                 ),
                               ),
-
                               const SizedBox(height: 10),
                               ElevatedButton(
                                 onPressed: () {
@@ -487,11 +520,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                   label: Text(selectedCinema?.name ?? "Cinema"),
                 ),
               ),
-              // Placeholder Dropdown
             ],
           ),
-          SizedBox(height: 12),
-          // Container(height: 50, color: Colors.grey[200], child: Center(child: Text("Horizontal Date List Placeholder"))), // Placeholder List ngày ngang
+          const SizedBox(height: 12),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -506,8 +537,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                     });
                   },
                   child: Container(
-                    margin: EdgeInsets.only(right: 8),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: isSelected ? Colors.blue : Colors.grey[200],
                       borderRadius: BorderRadius.circular(8),
@@ -538,35 +569,33 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
               }),
             ),
           ),
-
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Center(
             child: Text(
-              DateFormat(
-                "EEEE, 'ngày' dd 'tháng' MM yyyy",
-                'vi_VN',
-              ).format(selectedDate),
+              DateFormat("EEEE, 'ngày' dd 'tháng' MM yyyy", 'vi_VN')
+                  .format(selectedDate),
               style: TextStyle(color: Colors.grey[600]),
             ),
           ),
-
-          // Ngày được chọn
-          SizedBox(height: 16),
-          Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: getCinemasByMovie(widget.movie.id).map((cinema) {
-              final showtimes = getShowtimes(widget.movie.id,cinema.id, selectedDate);
-
-              if (showtimes.isEmpty) return SizedBox();
+          const SizedBox(height: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: filteredCinemas.map((cinema) {
+              if (selectedCinema != null && cinema.id != selectedCinema!.id) {
+                return const SizedBox();
+              }
+              final showtimes = getShowtimes(widget.movie.id, cinema.id, selectedDate);
+              if (showtimes.isEmpty) return const SizedBox();
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     cinema.name,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    "2D PHỤ ĐỀ", // Bạn có thể thay bằng định dạng động nếu cần
+                    "2D PHỤ ĐỀ",
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
@@ -577,34 +606,35 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                       final time = TimeOfDay.fromDateTime(show.startTime);
                       return OutlinedButton(
                         onPressed: () {
-                          final room = getRoomById(show.roomId); // Lấy phòng chiếu từ ID
-                          final seats = getSeatsByRoomId(show.roomId); // Lấy danh sách ghế của phòng
-
+                          final room = getRoomById(show.roomId);
+                          final seats = getSeatsByRoomId(show.roomId);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => SeatSelectionScreen(
                                 room: room,
                                 allSeats: seats,
-                                showtime: show, // nếu bạn muốn truyền thông tin showtime
+                                showtime: show,
                               ),
                             ),
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           side: BorderSide(color: Colors.grey[400]!),
-                          textStyle: TextStyle(fontSize: 14),
+                          textStyle: const TextStyle(fontSize: 14),
                           foregroundColor: Colors.black87,
                         ),
                         child: Text(time.format(context)),
                       );
                     }).toList(),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                 ],
               );
-            }).toList(),),
+            }).toList(),
+          ),
         ],
       ),
     );
