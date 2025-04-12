@@ -1,9 +1,9 @@
 import '../screens/cinema_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'account_screen.dart';
 import 'home_screen.dart';
+import 'movie_news_screen.dart';
 
 class DefaultScreen extends StatelessWidget {
   const DefaultScreen({super.key});
@@ -34,7 +34,7 @@ class MyDefaultScreenState extends State<MyDefaultScreen> {
   static final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     CinemaScreen(),
-    const Text('Điện ảnh', style: optionStyle),
+    MovieNewsScreen(),
     const AccountScreen()
   ];
 
