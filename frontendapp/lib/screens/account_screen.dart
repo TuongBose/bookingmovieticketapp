@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart';  
-import 'login_screen.dart';     
+import 'package:qr_flutter/qr_flutter.dart';
+import 'register_screen.dart';
+import 'login_screen.dart';
+import 'settings_screen.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
   @override
+  _AccountScreenState createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  bool _isQrRevealed = false;
+
+  @override
   Widget build(BuildContext context) {
+    const String memberCode = 'CXN2931D7L';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tài khoản'),
@@ -14,7 +25,13 @@ class AccountScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {},
+            onPressed: () {
+              // Điều hướng đến SettingsScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -71,7 +88,6 @@ class AccountScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                   ),
                   onPressed: () {
-                    // 👉 Chuyển sang trang đăng ký
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const DangKyScreen()),
@@ -86,7 +102,6 @@ class AccountScreen extends StatelessWidget {
                     side: const BorderSide(color: Colors.orange),
                   ),
                   onPressed: () {
-                    // 👉 Chuyển sang trang đăng nhập
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const DangNhapScreen()),
@@ -98,6 +113,90 @@ class AccountScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 30),
+
+            const Text(
+              'MÃ THÀNH VIÊN',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
+            const Text(
+              'CXN2931D7L',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 10),
+
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isQrRevealed = !_isQrRevealed;
+                });
+              },
+              child: AnimatedCrossFade(
+                duration: const Duration(milliseconds: 300),
+                crossFadeState: _isQrRevealed
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                firstChild: Column(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.orange, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.qr_code,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Scan to reveal QR Code',
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
+                ),
+                secondChild: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: QrImageView(
+                        data: memberCode,
+                        version: QrVersions.auto,
+                        size: 200.0,
+                        gapless: false,
+                        errorStateBuilder: (cxt, err) {
+                          return const Text('Lỗi khi tạo mã QR');
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'MÃ QR này',
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            TextButton(
+              onPressed: () {
+                // TODO: Thêm logic quét QR code nếu cần
+              },
+              child: const Text(
+                'QUÉT QRCODE TRÊN MÀN HÌNH',
+                style: TextStyle(color: Colors.blue),
+              ),
             ),
             const SizedBox(height: 30),
 
