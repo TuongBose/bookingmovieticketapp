@@ -22,7 +22,7 @@ final List<Showtime> sampleShowtimes = [
   // CGV Crescent Mall (TP.HCM, roomId: 3 và 4)
   Showtime(
     id: 3,
-    movieId: 950387,
+    movieId: 324544,
     roomId: 3,
     showDate: DateTime.now(),
     startTime: DateTime.now().add(const Duration(hours: 2)), // 2 giờ sau hiện tại
@@ -30,7 +30,7 @@ final List<Showtime> sampleShowtimes = [
   ),
   Showtime(
     id: 4,
-    movieId: 950387,
+    movieId: 324544,
     roomId: 4,
     showDate: DateTime.now().add(const Duration(days: 1)), // Ngày mai
     startTime: DateTime.now().add(const Duration(days: 1, hours: 1)),

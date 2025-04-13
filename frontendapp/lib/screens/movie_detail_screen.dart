@@ -15,8 +15,13 @@ import '../services/MovieService.dart';
 import '../services/movie_news_service.dart';
 import '../screens/news_detail_screen.dart';
 import '../models/movie_news.dart';
+
 class MovieDetailScreen extends StatefulWidget {
-  const MovieDetailScreen({super.key, required this.movie, required this.selectedLocation});
+  const MovieDetailScreen({
+    super.key,
+    required this.movie,
+    required this.selectedLocation,
+  });
 
   final Movie movie;
   final String selectedLocation;
@@ -31,58 +36,71 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   Cinema? selectedCinema;
   int selectedIndex = 0;
   DateTime selectedDate = DateTime.now();
-  ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   double _titleOpacity = 0.0;
   final MovieService _movieService = MovieService();
-  final MovieNewsService _newsService = MovieNewsService(); // Thêm MovieNewsService
+  final MovieNewsService _newsService =
+      MovieNewsService(); // Thêm MovieNewsService
 
   List<Cinema> getCinemasByMovie(int movieId) {
-    final filteredCinemasByCity = sampleCinemas
-        .where((c) =>
-    widget.selectedLocation == "Toàn quốc" ||
-        c.city == widget.selectedLocation)
-        .toList();
+    final filteredCinemasByCity =
+        sampleCinemas
+            .where(
+              (c) =>
+                  widget.selectedLocation == "Toàn quốc" ||
+                  c.city == widget.selectedLocation,
+            )
+            .toList();
 
     final cinemaIds = filteredCinemasByCity.map((c) => c.id).toSet();
 
-    final roomIds = sampleRooms
-        .where((room) => cinemaIds.contains(room.cinemaId))
-        .map((room) => room.id)
-        .toSet();
+    final roomIds =
+        sampleRooms
+            .where((room) => cinemaIds.contains(room.cinemaId))
+            .map((room) => room.id)
+            .toSet();
 
-    final showtimeRoomIds = sampleShowtimes
-        .where((s) => s.movieId == movieId && roomIds.contains(s.roomId))
-        .map((s) => s.roomId)
-        .toSet();
+    final showtimeRoomIds =
+        sampleShowtimes
+            .where((s) => s.movieId == movieId && roomIds.contains(s.roomId))
+            .map((s) => s.roomId)
+            .toSet();
 
-    final finalCinemaIds = sampleRooms
-        .where((room) => showtimeRoomIds.contains(room.id))
-        .map((room) => room.cinemaId)
-        .toSet();
+    final finalCinemaIds =
+        sampleRooms
+            .where((room) => showtimeRoomIds.contains(room.id))
+            .map((room) => room.cinemaId)
+            .toSet();
 
-    final result = filteredCinemasByCity
-        .where((c) => finalCinemaIds.contains(c.id))
-        .toList();
+    final result =
+        filteredCinemasByCity
+            .where((c) => finalCinemaIds.contains(c.id))
+            .toList();
 
     print("Selected Location: ${widget.selectedLocation}");
-    print("Filtered Cinemas: ${result.map((c) => "${c.name} (${c.city})").toList()}");
+    print(
+      "Filtered Cinemas: ${result.map((c) => "${c.name} (${c.city})").toList()}",
+    );
 
     return result;
   }
 
   List<Showtime> getShowtimes(int movieId, int cinemaId, DateTime date) {
-    final roomIds = sampleRooms
-        .where((room) => room.cinemaId == cinemaId)
-        .map((room) => room.id)
-        .toList();
+    final roomIds =
+        sampleRooms
+            .where((room) => room.cinemaId == cinemaId)
+            .map((room) => room.id)
+            .toList();
 
     return sampleShowtimes
-        .where((show) =>
-    show.movieId == movieId &&
-        roomIds.contains(show.roomId) &&
-        show.showDate.year == date.year &&
-        show.showDate.month == date.month &&
-        show.showDate.day == date.day)
+        .where(
+          (show) =>
+              show.movieId == movieId &&
+              roomIds.contains(show.roomId) &&
+              show.showDate.year == date.year &&
+              show.showDate.month == date.month &&
+              show.showDate.day == date.day,
+        )
         .toList();
   }
 
@@ -108,10 +126,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
       });
     });
 
-    _tabController = TabController(
-      length: 3,
-      vsync: this,
-    );
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -123,8 +138,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final DateFormat dateFormatter = DateFormat('dd/MM/yyyy');
-
     return Scaffold(
       body: CustomScrollView(
         controller: _scrollController,
@@ -146,13 +159,19 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
               ),
             ),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(
+                Icons.arrow_back,
+                color: Color.lerp(Colors.white, Colors.black, _titleOpacity),
+              ),
               onPressed: () => Navigator.of(context).pop(),
               tooltip: 'Quay lại',
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.share_outlined, color: Colors.white),
+                icon: Icon(
+                  Icons.share_outlined,
+                  color: Color.lerp(Colors.white, Colors.black, _titleOpacity),
+                ),
                 onPressed: () {},
                 tooltip: 'Chia sẻ',
               ),
@@ -164,9 +183,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                   Image.network(
                     widget.movie.bannerUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.grey,
-                    ),
+                    errorBuilder:
+                        (context, error, stackTrace) =>
+                            Container(color: Colors.grey),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -218,11 +237,12 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                       height: 150,
                       width: 100,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 150,
-                        width: 100,
-                        color: Colors.grey[300],
-                      ),
+                      errorBuilder:
+                          (context, error, stackTrace) => Container(
+                            height: 150,
+                            width: 100,
+                            color: Colors.grey[300],
+                          ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -287,7 +307,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                             ),
                             const SizedBox(width: 8),
                             _buildInfoTag(
-                              DateFormat('dd/MM/yyyy').format(DateTime.parse(widget.movie.releaseDate)),
+                              DateFormat('dd/MM/yyyy').format(
+                                DateTime.parse(widget.movie.releaseDate),
+                              ),
                               Colors.grey,
                               icon: Icons.calendar_today,
                             ),
@@ -387,10 +409,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                         title: Text(
                                           'Tất cả rạp',
                                           style: TextStyle(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: isSelected ? Colors.blue : Colors.black,
+                                            fontWeight:
+                                                isSelected
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                            color:
+                                                isSelected
+                                                    ? Colors.blue
+                                                    : Colors.black,
                                           ),
                                         ),
                                         onTap: () {
@@ -409,10 +435,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                         title: Text(
                                           cinema.name,
                                           style: TextStyle(
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: isSelected ? Colors.blue : Colors.black,
+                                            fontWeight:
+                                                isSelected
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                            color:
+                                                isSelected
+                                                    ? Colors.blue
+                                                    : Colors.black,
                                           ),
                                         ),
                                         onTap: () {
@@ -470,7 +500,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                   },
                   child: Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected ? Colors.blue : Colors.grey[200],
                       borderRadius: BorderRadius.circular(8),
@@ -504,68 +537,85 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           const SizedBox(height: 8),
           Center(
             child: Text(
-              DateFormat("EEEE, 'ngày' dd 'tháng' MM yyyy", 'vi_VN')
-                  .format(selectedDate),
+              DateFormat(
+                "EEEE, 'ngày' dd 'tháng' MM yyyy",
+                'vi_VN',
+              ).format(selectedDate),
               style: TextStyle(color: Colors.grey[600]),
             ),
           ),
           const SizedBox(height: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: filteredCinemas.map((cinema) {
-              if (selectedCinema != null && cinema.id != selectedCinema!.id) {
-                return const SizedBox();
-              }
-              final showtimes = getShowtimes(widget.movie.id, cinema.id, selectedDate);
-              if (showtimes.isEmpty) return const SizedBox();
+            children:
+                filteredCinemas.map((cinema) {
+                  if (selectedCinema != null &&
+                      cinema.id != selectedCinema!.id) {
+                    return const SizedBox();
+                  }
+                  final showtimes = getShowtimes(
+                    widget.movie.id,
+                    cinema.id,
+                    selectedDate,
+                  );
+                  if (showtimes.isEmpty) return const SizedBox();
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    cinema.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    "2D PHỤ ĐỀ",
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
-                    children: showtimes.map((show) {
-                      final time = TimeOfDay.fromDateTime(show.startTime);
-                      return OutlinedButton(
-                        onPressed: () {
-                          final room = getRoomById(show.roomId);
-                          final seats = getSeatsByRoomId(show.roomId);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SeatSelectionScreen(
-                                room: room,
-                                allSeats: seats,
-                                showtime: show,
-                              ),
-                            ),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          side: BorderSide(color: Colors.grey[400]!),
-                          textStyle: const TextStyle(fontSize: 14),
-                          foregroundColor: Colors.black87,
-                        ),
-                        child: Text(time.format(context)),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              );
-            }).toList(),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cinema.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        "2D PHỤ ĐỀ",
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children:
+                            showtimes.map((show) {
+                              final time = TimeOfDay.fromDateTime(
+                                show.startTime,
+                              );
+                              return OutlinedButton(
+                                onPressed: () {
+                                  final room = getRoomById(show.roomId);
+                                  final seats = getSeatsByRoomId(show.roomId);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => SeatSelectionScreen(
+                                            room: room,
+                                            allSeats: seats,
+                                            showtime: show,
+                                            movie: widget.movie,
+                                            cinema: cinema,
+                                            listshowtime: showtimes,
+                                          ),
+                                    ),
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  side: BorderSide(color: Colors.grey[400]!),
+                                  textStyle: const TextStyle(fontSize: 14),
+                                  foregroundColor: Colors.black87,
+                                ),
+                                child: Text(time.format(context)),
+                              );
+                            }).toList(),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  );
+                }).toList(),
           ),
         ],
       ),
@@ -620,7 +670,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           _buildInfoRow('Đạo diễn:', '${widget.movie.director}'),
           _buildInfoRow('Diễn viên:', '${widget.movie.casts?.join(", ")}, ...'),
           _buildInfoRow('Thể loại:', 'Hành động, Phiêu lưu'),
-          _buildInfoRow('Ngày phát hành:', DateFormat('dd/MM/yyyy').format(DateTime.parse(movie.releaseDate))),
+          _buildInfoRow(
+            'Ngày phát hành:',
+            DateFormat('dd/MM/yyyy').format(DateTime.parse(movie.releaseDate)),
+          ),
           _buildInfoRow('Thời lượng:', '${movie.duration} phút'),
         ],
       ),
@@ -687,10 +740,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => MovieDetailScreen(
-                              movie: movie,
-                              selectedLocation: widget.selectedLocation,
-                            ),
+                            builder:
+                                (context) => MovieDetailScreen(
+                                  movie: movie,
+                                  selectedLocation: widget.selectedLocation,
+                                ),
                           ),
                         );
                       },
@@ -722,12 +776,18 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               movie.name,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               movie.releaseDate ?? 'Không rõ',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -755,9 +815,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                 return const Text('Không có tin tức liên quan');
               }
 
-              final relatedNews = snapshot.data!
-                  .where((news) => news.movieId == widget.movie.id)
-                  .toList();
+              final relatedNews =
+                  snapshot.data!
+                      .where((news) => news.movieId == widget.movie.id)
+                      .toList();
 
               if (relatedNews.isEmpty) {
                 return const Text('Không có tin tức liên quan');
@@ -807,12 +868,18 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               news.title,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               news.publishDate ?? 'Không rõ',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -842,10 +909,10 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context,
-      double shrinkOffset,
-      bool overlapsContent,
-      ) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: _tabBar,

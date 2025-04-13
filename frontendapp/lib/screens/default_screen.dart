@@ -59,17 +59,17 @@ class MyDefaultScreenState extends State<MyDefaultScreen> {
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.business),
+            icon: Icon(Icons.business_sharp),
             label: 'Rạp phim',
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.school),
+            icon: Icon(Icons.newspaper),
             label: 'Điện ảnh',
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.school),
+            icon: Icon(Icons.account_circle_outlined),
             label: 'Tài khoản',
             backgroundColor: Colors.white,
           ),

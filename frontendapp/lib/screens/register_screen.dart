@@ -7,7 +7,11 @@ class DangKyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: const Icon(Icons.close, color: Colors.blue),
+        leading: IconButton(
+          icon: Icon(Icons.close, color: Colors.blue),
+          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Quay lại',
+        ),
         elevation: 0,
         backgroundColor: Colors.white,
       ),
@@ -16,7 +20,7 @@ class DangKyScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Image.asset('assets/images/logo-bear.png', height: 100), 
+            Image.asset('assets/images/logo-bear.png', height: 100),
             const SizedBox(height: 12),
             const Text(
               'Đăng Ký Thành Viên Star',
@@ -28,7 +32,10 @@ class DangKyScreen extends StatelessWidget {
               children: const [
                 IconWithText(icon: Icons.card_giftcard, label: 'Stars'),
                 IconWithText(icon: Icons.card_membership, label: 'Quà tặng'),
-                IconWithText(icon: Icons.emoji_events, label: 'Ưu đãi đặc biệt'),
+                IconWithText(
+                  icon: Icons.emoji_events,
+                  label: 'Ưu đãi đặc biệt',
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -54,8 +61,16 @@ class DangKyScreen extends StatelessWidget {
               hint: 'Ngày sinh (Tuỳ chọn)',
               isDate: true,
             ),
-            CustomTextField(icon: Icons.lock, hint: 'Mật khẩu', isPassword: true),
-            CustomTextField(icon: Icons.lock, hint: 'Xác nhận mật khẩu', isPassword: true),
+            CustomTextField(
+              icon: Icons.lock,
+              hint: 'Mật khẩu',
+              isPassword: true,
+            ),
+            CustomTextField(
+              icon: Icons.lock,
+              hint: 'Xác nhận mật khẩu',
+              isPassword: true,
+            ),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -95,10 +110,7 @@ class DangKyScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text('Tài khoản đã được đăng ký!'),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('Đăng nhập'),
-                )
+                TextButton(onPressed: () {}, child: const Text('Đăng nhập')),
               ],
             ),
           ],
@@ -111,22 +123,20 @@ class DangKyScreen extends StatelessWidget {
 class IconWithText extends StatelessWidget {
   final IconData icon;
   final String label;
+
   const IconWithText({required this.icon, required this.label, super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
-        Icon(icon, size: 30),
-        const SizedBox(height: 4),
-        Text(label),
-      ],
+      children: [Icon(icon, size: 30), const SizedBox(height: 4), Text(label)],
     );
   }
 }
 
 class GenderRadio extends StatelessWidget {
   final String label;
+
   const GenderRadio({required this.label, super.key});
 
   @override
@@ -145,6 +155,7 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final bool isPassword;
   final bool isDate;
+
   const CustomTextField({
     required this.icon,
     required this.hint,
@@ -164,11 +175,12 @@ class CustomTextField extends StatelessWidget {
         border: const OutlineInputBorder(),
         contentPadding: const EdgeInsets.symmetric(vertical: 10),
       ),
-      onTap: isDate
-          ? () {
-              // xu ly chon ngay
-            }
-          : null,
+      onTap:
+          isDate
+              ? () {
+                // xu ly chon ngay
+              }
+              : null,
     );
   }
 }

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:frontendapp/screens/payment_screen.dart';
 import '../data/booking_data.dart';
 import '../data/bookingdetail_data.dart';
+import '../data/room_data.dart';
+import '../data/seat_data.dart';
+import '../models/cinema.dart';
+import '../models/movie.dart';
 import '../models/showtime.dart';
 import '../models/room.dart';
 import '../models/seat.dart';
@@ -9,12 +14,18 @@ class SeatSelectionScreen extends StatefulWidget {
   final Room room;
   final List<Seat> allSeats;
   final Showtime showtime;
+  final Movie movie;
+  final Cinema cinema;
+  final List<Showtime> listshowtime;
 
   const SeatSelectionScreen({
     super.key,
     required this.room,
     required this.allSeats,
     required this.showtime,
+    required this.movie,
+    required this.cinema,
+    required this.listshowtime,
   });
 
   @override
@@ -25,6 +36,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   final List<String> _selectedSeats = [];
   Set<int> _bookedSeatIdsForShowtime = {};
   bool _isLoadingBookedSeats = true;
+  late Showtime _selectedShowtime;
+  late Room _selectedRoom; // Thêm trạng thái cho phòng
+  late List<Seat> _allSeats; // Thêm trạng thái cho danh sách ghế
 
   final Color availableColor = Colors.grey[200]!;
   final Color bookedColor = Colors.grey[500]!;
@@ -35,9 +49,20 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   final double _labelSeatSpacing = 5.0;
   final double _seatPadding = 2.0;
 
+  Room getRoomById(int roomId) {
+    return sampleRooms.firstWhere((room) => room.id == roomId);
+  }
+
+  List<Seat> getSeatsByRoomId(int roomId) {
+    return sampleSeats.where((seat) => seat.roomId == roomId).toList();
+  }
+
   @override
   void initState() {
     super.initState();
+    _selectedShowtime = widget.showtime;
+    _selectedRoom = widget.room; // Khởi tạo phòng ban đầu
+    _allSeats = widget.allSeats; // Khởi tạo danh sách ghế ban đầu
     _loadBookedSeats();
   }
 
@@ -48,18 +73,16 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     });
 
     // Lấy danh sách booking cho suất chiếu hiện tại
-    final bookingsForShowtime =
-        sampleBookings
-            .where((booking) => booking.showtimeId == widget.showtime.id)
-            .toList();
+    final bookingsForShowtime = sampleBookings
+        .where((booking) => booking.showtimeId == _selectedShowtime.id)
+        .toList();
 
     // Lấy danh sách seatId đã đặt từ booking details
     final bookedSeatIds = <int>{};
     for (var booking in bookingsForShowtime) {
-      final details =
-          sampleBookingDetails
-              .where((detail) => detail.bookingId == booking.id)
-              .toList();
+      final details = sampleBookingDetails
+          .where((detail) => detail.bookingId == booking.id)
+          .toList();
       bookedSeatIds.addAll(details.map((detail) => detail.seatId));
     }
 
@@ -72,264 +95,294 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final rowLabels = List.generate(
-      widget.room.seatColumnMax,
-      (i) => String.fromCharCode(65 + i),
+      _selectedRoom.seatColumnMax, // Sử dụng _selectedRoom
+          (i) => String.fromCharCode(65 + i),
     );
-    final columnCount = widget.room.seatRowMax;
+    final columnCount = _selectedRoom.seatRowMax; // Sử dụng _selectedRoom
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Chọn Ghế - ${widget.room.name}"),
-        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          widget.cinema.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
       backgroundColor: Colors.white,
-      body:
-          _isLoadingBookedSeats
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10.0,
-                      horizontal: 16.0,
+      body: _isLoadingBookedSeats
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 10.0,
+              horizontal: 16.0,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.movie.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Một Bộ Phim Minecraft", // Có thể lấy từ showtime
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              "2D LỒNG TIẾNG",
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                          ],
+                    Text(
+                      "2D LỒNG TIẾNG",
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+                // DropdownButton để chọn suất chiếu
+                DropdownButton<Showtime>(
+                  value: _selectedShowtime,
+                  onChanged: (Showtime? newShowtime) {
+                    if (newShowtime != null) {
+                      setState(() {
+                        _selectedShowtime = newShowtime;
+                        // Cập nhật phòng và ghế dựa trên roomId của suất chiếu mới
+                        _selectedRoom = getRoomById(newShowtime.roomId);
+                        _allSeats = getSeatsByRoomId(newShowtime.roomId);
+                        _selectedSeats.clear();
+                        _loadBookedSeats();
+                      });
+                    }
+                  },
+                  items: widget.listshowtime.map((Showtime showtime) {
+                    return DropdownMenuItem<Showtime>(
+                      value: showtime,
+                      child: Text(
+                        "${showtime.startTime.hour}:${showtime.startTime.minute.toString().padLeft(2, '0')}",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
-                        Text(
-                          "${widget.showtime.startTime.hour}:${widget.showtime.startTime.minute.toString().padLeft(2, '0')}",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  }).toList(),
+                  icon: const Icon(Icons.arrow_drop_down),
+                  underline: Container(),
+                  dropdownColor: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  style: const TextStyle(color: Colors.black),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: Colors.grey[300]),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: Column(
+                  children: [
+                    Column(
+                      children: rowLabels.reversed.map((row) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 1.0,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Divider(height: 1, color: Colors.grey[300]),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
-                        ),
-                        child: Column(
-                          children: [
-                            Column(
-                              children:
-                                  rowLabels.reversed.map((row) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 1.0,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          SizedBox(
-                                            width: _labelWidth,
-                                            child: Text(
-                                              row,
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Colors.grey[600],
-                                                fontSize: 12,
-                                              ),
-                                            ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: _labelWidth,
+                                child: Text(
+                                  row,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: _labelSeatSpacing),
+                              Expanded(
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final availableWidth =
+                                        constraints.maxWidth;
+                                    double seatSize =
+                                        (availableWidth / columnCount) -
+                                            (_seatPadding * 2);
+                                    seatSize = seatSize.clamp(
+                                      0,
+                                      35.0,
+                                    );
+
+                                    if (seatSize <= 0) {
+                                      return Container(
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '!',
+                                          style: TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 10,
                                           ),
-                                          SizedBox(width: _labelSeatSpacing),
-                                          Expanded(
-                                            child: LayoutBuilder(
-                                              builder: (context, constraints) {
-                                                final availableWidth =
-                                                    constraints.maxWidth;
-                                                double seatSize =
-                                                    (availableWidth /
-                                                        columnCount) -
-                                                    (_seatPadding * 2);
-                                                seatSize = seatSize.clamp(
-                                                  0,
-                                                  35.0,
-                                                );
+                                        ),
+                                      );
+                                    }
 
-                                                if (seatSize <= 0) {
-                                                  return Container(
-                                                    alignment: Alignment.center,
-                                                    child: Text(
-                                                      '!',
-                                                      style: TextStyle(
-                                                        color: Colors.red,
-                                                        fontSize: 10,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
+                                    return Row(
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                      children: List.generate(
+                                        columnCount,
+                                            (index) {
+                                          final seatNumber =
+                                              '$row${index + 1}';
+                                          final seat = _allSeats.firstWhere(
+                                                (s) =>
+                                            s.seatNumber ==
+                                                seatNumber,
+                                            orElse: () {
+                                              return Seat(
+                                                id: -1,
+                                                roomId: _selectedRoom.id,
+                                                seatNumber: seatNumber,
+                                              );
+                                            },
+                                          );
+                                          // Kiểm tra ghế đã đặt dựa trên seatId
+                                          final isBooked =
+                                          _bookedSeatIdsForShowtime
+                                              .contains(seat.id);
+                                          final isSelected =
+                                          _selectedSeats.contains(
+                                              seatNumber);
 
-                                                return Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceEvenly,
-                                                  children: List.generate(
-                                                    columnCount,
-                                                    (index) {
-                                                      final seatNumber =
-                                                          '$row${index + 1}';
-                                                      final seat = widget
-                                                          .allSeats
-                                                          .firstWhere(
-                                                            (s) =>
-                                                                s.seatNumber ==
-                                                                seatNumber,
-                                                            orElse: () {
-                                                              print(
-                                                                'Error: Seat $seatNumber not found',
-                                                              );
-                                                              return Seat(
-                                                                id: -1,
-                                                                roomId:
-                                                                    widget
-                                                                        .room
-                                                                        .id,
-                                                                seatNumber:
-                                                                    seatNumber,
-                                                              );
-                                                            },
-                                                          );
-                                                      // Kiểm tra ghế đã đặt dựa trên seatId
-                                                      final isBooked =
-                                                          _bookedSeatIdsForShowtime
-                                                              .contains(
-                                                                seat.id,
-                                                              );
-                                                      final isSelected =
-                                                          _selectedSeats
-                                                              .contains(
-                                                                seatNumber,
-                                                              );
-
-                                                      return _buildSeatItem(
-                                                        seatNumber,
-                                                        isBooked,
-                                                        isSelected,
-                                                        seatSize,
-                                                        _seatPadding,
-                                                      );
-                                                    },
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ],
+                                          return _buildSeatItem(
+                                            seatNumber,
+                                            isBooked,
+                                            isSelected,
+                                            seatSize,
+                                            _seatPadding,
+                                          );
+                                        },
                                       ),
                                     );
-                                  }).toList(),
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              "MÀN HÌNH",
-                              style: TextStyle(
-                                color: Colors.grey[700],
-                                fontSize: 12,
-                                letterSpacing: 2,
+                                  },
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 5),
-                            Container(
-                              height: 3,
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange[700],
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "MÀN HÌNH",
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 12,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Container(
+                      height: 3,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[700],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  spreadRadius: 0,
+                  blurRadius: 5,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLegend(),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: _selectedSeats.isEmpty
+                        ? null
+                        : () {
+                      // Tính tổng tiền (giả sử giá vé lấy từ showtime.price)
+                      final totalPrice = _selectedShowtime.price *
+                          _selectedSeats.length;
+
+                      // Điều hướng đến PaymentScreen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentScreen(
+                            movie: widget.movie,
+                            cinema: widget.cinema,
+                            room: _selectedRoom, // Sử dụng _selectedRoom
+                            showTime: _selectedShowtime.startTime,
+                            selectedSeats: _selectedSeats,
+                            totalPrice: totalPrice,
+                          ),
                         ),
+                      );
+                    },
+                    child: Text(
+                      _selectedSeats.isEmpty
+                          ? "Tiếp tục"
+                          : "Tiếp tục (${_selectedSeats.length} ghế)",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          spreadRadius: 0,
-                          blurRadius: 5,
-                          offset: const Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildLegend(),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed:
-                                _selectedSeats.isEmpty
-                                    ? null
-                                    : () {
-                                      // Xử lý khi nhấn nút Tiếp tục
-                                      print('Ghế đã chọn: $_selectedSeats');
-                                      // Điều hướng hoặc lưu booking...
-                                    },
-                            child: Text(
-                              _selectedSeats.isEmpty
-                                  ? "Tiếp tục"
-                                  : "Tiếp tục (${_selectedSeats.length} ghế)",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildSeatItem(
-    String seatNumber,
-    bool isBooked,
-    bool isSelected,
-    double seatSize,
-    double seatPadding,
-  ) {
+      String seatNumber,
+      bool isBooked,
+      bool isSelected,
+      double seatSize,
+      double seatPadding,
+      ) {
     Color color = availableColor;
     Border? border = Border.all(color: seatBorderColor, width: 0.5);
     Color textColor = Colors.transparent;
@@ -349,18 +402,17 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return Padding(
       padding: EdgeInsets.all(seatPadding),
       child: GestureDetector(
-        onTap:
-            isBooked
-                ? null
-                : () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedSeats.remove(seatNumber);
-                    } else {
-                      _selectedSeats.add(seatNumber);
-                    }
-                  });
-                },
+        onTap: isBooked
+            ? null
+            : () {
+          setState(() {
+            if (isSelected) {
+              _selectedSeats.remove(seatNumber);
+            } else {
+              _selectedSeats.add(seatNumber);
+            }
+          });
+        },
         child: Container(
           width: seatSize,
           height: seatSize,

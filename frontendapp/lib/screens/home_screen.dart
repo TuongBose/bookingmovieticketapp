@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../data/cinema_data.dart';
-import '../models/cinema.dart';
-import '../screens/movie_detail_screen.dart';
+import '../data/cinema_data.dart'; // Giả sử bạn có file này
+import '../models/cinema.dart';   // Giả sử bạn có file này
+import '../screens/movie_detail_screen.dart'; // Giả sử bạn có file này
 import '../services/MovieService.dart';
 import '../models/movie.dart';
 
@@ -25,14 +25,16 @@ class HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
   String _selectedLocation = "Toàn quốc";
 
+  // --- loadMovies, initState, _startAutoScroll, dispose (GIỮ NGUYÊN) ---
   void loadMovies() async {
+    // ... (Giữ nguyên logic loadMovies)
     MovieService movieService = MovieService();
     final moviesNowPlaying = await movieService.getNowPlaying();
     final moviesUpComing = await movieService.getUpComing();
     setState(() {
       _moviesNowPlaying = moviesNowPlaying;
       _moviesUpComing = moviesUpComing;
-      _filteredCinemas = sampleCinemas;
+      // _filteredCinemas = sampleCinemas; // Cập nhật nếu cần
       _isLoading = false;
       _startAutoScroll();
     });
@@ -42,9 +44,11 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     loadMovies();
+    _filteredCinemas = sampleCinemas; // Khởi tạo ở đây nếu sampleCinemas là global
   }
 
   void _startAutoScroll() {
+    // ... (Giữ nguyên logic _startAutoScroll)
     if (_moviesNowPlaying.isNotEmpty) {
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
@@ -62,12 +66,16 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    // ... (Giữ nguyên logic dispose)
     _timer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
+  // --- Kết thúc phần giữ nguyên ---
+
 
   Widget _buildTabItem(String title, int index) {
+    // ... (Giữ nguyên logic _buildTabItem)
     final bool isSelected = _selectedIndex == index;
     return InkWell(
       onTap: () {
@@ -90,6 +98,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   List<String> getUniqueCities() {
+    // ... (Giữ nguyên logic getUniqueCities)
     final cities = sampleCinemas.map((cinema) => cinema.city).toSet().toList();
     cities.insert(0, "Toàn quốc"); // Thêm "Toàn quốc" vào đầu danh sách
     return cities;
@@ -98,52 +107,54 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // Khoảng cách trên cùng
-          const SliverToBoxAdapter(child: SizedBox(height: 30)),
-          // Banner và chấm điều hướng
-          SliverToBoxAdapter(
-            child: Padding(
+      // **THAY ĐỔI 1: Sử dụng SingleChildScrollView thay vì CustomScrollView**
+      body: SingleChildScrollView(
+        // **THAY ĐỔI 2: Sử dụng Column làm con trực tiếp**
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, // Đảm bảo các con giãn chiều ngang
+          children: [
+            // Khoảng cách trên cùng
+            const SizedBox(height: 30),
+
+            // Banner và chấm điều hướng (Không còn là Sliver)
+            Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
                 children: [
                   // Banner
                   SizedBox(
                     height: 200,
-                    child:
-                        _isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : PageView.builder(
-                              controller: _pageController,
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentCardPage = index;
-                                });
-                              },
-                              itemCount: _moviesNowPlaying.length,
-                              itemBuilder: (context, index) {
-                                final movie = _moviesNowPlaying[index];
-                                return _buildBannerItem(movie);
-                              },
-                            ),
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _currentCardPage = index;
+                        });
+                      },
+                      itemCount: _moviesNowPlaying.length,
+                      itemBuilder: (context, index) {
+                        final movie = _moviesNowPlaying[index];
+                        return _buildBannerItem(movie);
+                      },
+                    ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   // Chấm điều hướng
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       _moviesNowPlaying.length,
-                      (index) => buildIndicatorDot(_currentCardPage == index),
+                          (index) => buildIndicatorDot(_currentCardPage == index),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          // Tab
-          SliverToBoxAdapter(
-            child: Padding(
+
+            // Tab và Location (Không còn là Sliver)
+            Padding(
               padding: const EdgeInsets.only(
                 top: 16.0,
                 left: 12.0,
@@ -167,6 +178,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const Spacer(),
+                  // Nút chọn địa điểm (Giữ nguyên logic bên trong)
                   TextButton.icon(
                     onPressed: () {
                       final cities = getUniqueCities();
@@ -174,22 +186,22 @@ class HomeScreenState extends State<HomeScreen> {
                         context: context,
                         builder:
                             (context) => AlertDialog(
-                              title: const Text('Chọn khu vực'),
-                              content: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children:
-                                      cities.map((city) {
-                                        return ListTile(
-                                          title: Text(city),
-                                          onTap: () {
-                                            Navigator.pop(context, city);
-                                          },
-                                        );
-                                      }).toList(),
-                                ),
-                              ),
+                          title: const Text('Chọn khu vực'),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children:
+                              cities.map((city) {
+                                return ListTile(
+                                  title: Text(city),
+                                  onTap: () {
+                                    Navigator.pop(context, city);
+                                  },
+                                );
+                              }).toList(),
                             ),
+                          ),
+                        ),
                       ).then((selectedCity) {
                         if (selectedCity != null) {
                           setState(() {
@@ -202,8 +214,8 @@ class HomeScreenState extends State<HomeScreen> {
                                   sampleCinemas
                                       .where(
                                         (cinema) =>
-                                            cinema.city == _selectedLocation,
-                                      )
+                                    cinema.city == _selectedLocation,
+                                  )
                                       .toList();
                             }
                           });
@@ -233,22 +245,25 @@ class HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-          ),
-          // Danh sách phim
-          SliverFillRemaining(
-            child: IndexedStack(
+
+            // Danh sách phim (Không còn là SliverFillRemaining)
+            // **THAY ĐỔI 3: IndexedStack nằm trực tiếp trong Column**
+            IndexedStack(
               index: _selectedIndex,
               children: [
+                // **THAY ĐỔI 4: Gọi hàm build GridView đã được sửa đổi**
                 buildMoviesNowPlayingGrid(),
                 buildMoviesUpComingGrid(),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 20), // Thêm khoảng trống dưới cùng nếu cần
+          ],
+        ),
       ),
     );
   }
 
+  // --- _buildBannerItem, buildIndicatorDot (GIỮ NGUYÊN) ---
   Widget _buildBannerItem(Movie movie) {
     return InkWell(
       onTap: () {
@@ -257,9 +272,9 @@ class HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder:
                 (_) => MovieDetailScreen(
-                  movie: movie,
-                  selectedLocation: _selectedLocation,
-                ),
+              movie: movie,
+              selectedLocation: _selectedLocation,
+            ),
           ),
         );
       },
@@ -272,7 +287,7 @@ class HomeScreenState extends State<HomeScreen> {
             fit: BoxFit.cover,
           ),
         ),
-        child: Container(
+        child: Container( // Lớp phủ Gradient
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             gradient: LinearGradient(
@@ -281,7 +296,7 @@ class HomeScreenState extends State<HomeScreen> {
               colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
             ),
           ),
-          child: Padding(
+          child: Padding( // Padding cho Text bên trong lớp phủ
             padding: const EdgeInsets.all(16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -299,7 +314,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Khởi chiếu: ${movie.releaseDate}',
+                  'Khởi chiếu: ${movie.releaseDate}', // Hoặc thông tin khác
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
@@ -321,24 +336,34 @@ class HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+  // --- Kết thúc phần giữ nguyên ---
 
+
+  // **THAY ĐỔI 5: Sửa đổi các hàm build GridView**
   Widget buildMoviesUpComingGrid() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      // Hiển thị loading indicator với kích thước cố định để không làm nhảy layout
+      return const Center(child: SizedBox(height: 100, child: CircularProgressIndicator()));
+    }
+    if (_moviesUpComing.isEmpty) {
+      return const Center(child: Text("Không có phim sắp chiếu"));
     }
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GridView.builder(
+        // **QUAN TRỌNG**
+        shrinkWrap: true, // Cho phép GridView tự tính chiều cao
+        physics: const NeverScrollableScrollPhysics(), // Ngăn GridView tự cuộn
         itemCount: _moviesUpComing.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.65,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+          crossAxisCount: 2, // Số cột
+          childAspectRatio: 0.65, // Tỷ lệ chiều rộng/chiều cao của card
+          crossAxisSpacing: 10, // Khoảng cách ngang
+          mainAxisSpacing: 10, // Khoảng cách dọc
         ),
         itemBuilder: (context, index) {
           final movie = _moviesUpComing[index];
-          return MovieCard(movie: movie, selectedLocation: _selectedLocation,);
+          return MovieCard(movie: movie, selectedLocation: _selectedLocation);
         },
       ),
     );
@@ -346,11 +371,17 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget buildMoviesNowPlayingGrid() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: SizedBox(height: 100, child: CircularProgressIndicator()));
+    }
+    if (_moviesNowPlaying.isEmpty) {
+      return const Center(child: Text("Không có phim đang chiếu"));
     }
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GridView.builder(
+        // **QUAN TRỌNG**
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         itemCount: _moviesNowPlaying.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
@@ -360,14 +391,16 @@ class HomeScreenState extends State<HomeScreen> {
         ),
         itemBuilder: (context, index) {
           final movie = _moviesNowPlaying[index];
-          return MovieCard(movie: movie, selectedLocation: _selectedLocation,);
+          return MovieCard(movie: movie, selectedLocation: _selectedLocation);
         },
       ),
     );
   }
 }
 
+// --- MovieCard (GIỮ NGUYÊN) ---
 class MovieCard extends StatelessWidget {
+  // ... (Giữ nguyên widget MovieCard)
   final Movie movie;
   final String selectedLocation;
 
@@ -395,11 +428,11 @@ class MovieCard extends StatelessWidget {
                     movie.posterUrl,
                     fit: BoxFit.cover,
                     frameBuilder: (
-                      context,
-                      child,
-                      frame,
-                      wasSynchronouslyLoaded,
-                    ) {
+                        context,
+                        child,
+                        frame,
+                        wasSynchronouslyLoaded,
+                        ) {
                       if (wasSynchronouslyLoaded) return child;
                       return AnimatedOpacity(
                         opacity: frame == null ? 0 : 1,
@@ -409,6 +442,7 @@ class MovieCard extends StatelessWidget {
                       );
                     },
                     errorBuilder: (context, error, stackTrace) {
+                      // Widget hiển thị khi load ảnh lỗi
                       return Container(
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
@@ -425,6 +459,7 @@ class MovieCard extends StatelessWidget {
                     },
                   ),
                 ),
+                // Rating (góc dưới phải)
                 Positioned(
                   bottom: 8,
                   right: 8,
@@ -434,7 +469,7 @@ class MovieCard extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: Colors.orange, // Hoặc màu khác
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
@@ -443,7 +478,7 @@ class MovieCard extends StatelessWidget {
                         const Icon(Icons.star, color: Colors.white, size: 14),
                         const SizedBox(width: 3),
                         Text(
-                          '${movie.voteAverage}',
+                          '${movie.voteAverage}', // Giả sử có voteAverage
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -454,6 +489,7 @@ class MovieCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Age Rating (góc trên phải)
                 Positioned(
                   top: 8,
                   right: 8,
@@ -463,11 +499,11 @@ class MovieCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.redAccent,
+                      color: Colors.redAccent, // Hoặc màu phù hợp
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      '${movie.ageRating}',
+                      '${movie.ageRating}', // Giả sử có ageRating (T18, P, C16...)
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -486,6 +522,7 @@ class MovieCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
+          // Có thể thêm thông tin khác ở đây (ví dụ: ngày khởi chiếu)
         ],
       ),
     );

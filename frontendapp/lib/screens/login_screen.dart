@@ -10,7 +10,8 @@ class DangNhapScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.blue),
-          onPressed: () {},
+          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Quay lại',
         ),
         backgroundColor: Colors.white,
         elevation: 0,
