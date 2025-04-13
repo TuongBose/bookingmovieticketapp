@@ -7,7 +7,7 @@ import '../services/movie_news_service.dart';
 class NewsDetailScreen extends StatelessWidget {
   final MovieNews news;
   final MovieNewsService _newsService = MovieNewsService();
-  final MovieService _movieService = MovieService(); // Khởi tạo MovieService
+  final MovieService _movieService = MovieService();
 
   NewsDetailScreen({Key? key, required this.news}) : super(key: key);
 
