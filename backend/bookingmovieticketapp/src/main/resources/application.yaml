@@ -10,7 +10,7 @@ spring:
     jpa:
       show-sql: true
       hibernate:
-        ddl-auto: none  # khong de java t? ??ng t?o b?ng, cot, v.v (thay v�o ?�, s? d?ng c�c cau lenh SQL ?? t?o bang, cot, v.v)
+        ddl-auto: none  # khong de java tự động tạo bảng, cột, v.v (thay vào đó, sử dụng các cau lệnh SQL để tạo bảng, cột, v.v)
       properties:
         hibernate:
           dialect: org.hibernate.dialect.MySQL8Dialect
@@ -19,3 +19,7 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+
+tmdb:
+  api:
+    key: 5fffce961921b470c26eb34749b33ce4

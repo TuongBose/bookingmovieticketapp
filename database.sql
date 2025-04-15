@@ -1,5 +1,5 @@
-CREATE DATABASE BOOKINGMOVIETICKETAPP
-USE BOOKINGMOVIETICKETAPP
+CREATE DATABASE bookingmovieticketapp;
+USE bookingmovieticketapp;
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,9 +15,9 @@ CREATE TABLE users (
 );
 
 CREATE TABLE movies (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description TEXT,
     duration INT,
     releasedate DATE NOT NULL,
     posterurl VARCHAR(255),
