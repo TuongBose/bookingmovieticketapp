@@ -3,6 +3,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'register_screen.dart';
 import 'login_screen.dart';
 import 'settings_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -26,7 +27,6 @@ class _AccountScreenState extends State<AccountScreen> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // Điều hướng đến SettingsScreen
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
@@ -245,8 +245,37 @@ class _AccountScreenState extends State<AccountScreen> {
           : null,
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
-        // TODO: xử lý khi bấm vào
+        if (title == "Gọi ĐƯỜNG DÂY NÓNG:" && value.isNotEmpty) {
+          _makePhoneCall(value);
+        } else if (title == "Email:" && value.isNotEmpty) {
+          _launchEmail(value);
+        }
+        // Xử lý các trường hợp khác nếu cần
       },
     );
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      throw 'Không thể thực hiện cuộc gọi $phoneNumber';
+    }
+  }
+
+  Future<void> _launchEmail(String email) async {
+    final Uri launchUri = Uri(
+      scheme: 'mailto',
+      path: email,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      throw 'Không thể mở ứng dụng email';
+    }
   }
 }
