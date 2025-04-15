@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'reset_password_screen.dart';
 
 class DangNhapScreen extends StatelessWidget {
   const DangNhapScreen({super.key});
@@ -19,7 +20,7 @@ class DangNhapScreen extends StatelessWidget {
       body: Column(
         children: [
           const SizedBox(height: 20),
-          Image.asset('assets/images/login_banner.png', height: 150), 
+          Image.asset('assets/images/login_banner.png', height: 150),
           const SizedBox(height: 12),
           const Text(
             'Đăng Nhập Với Tài Khoản Của Bạn',
@@ -44,8 +45,21 @@ class DangNhapScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
-                    child: const Text('Quên mật khẩu?'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const QuenMatKhauScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Quên mật khẩu?',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
