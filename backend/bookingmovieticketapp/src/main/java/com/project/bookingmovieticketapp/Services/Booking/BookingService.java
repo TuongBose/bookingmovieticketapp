@@ -24,6 +24,7 @@ public class BookingService implements IBookingService {
     public Booking createBooking(BookingDTO bookingDTO) throws Exception {
         User existingUser = userRepository.findById(bookingDTO.getUserid())
                 .orElseThrow(() -> new RuntimeException("Khong tim thay UserId"));
+
         ShowTime existingShowTime = showTimeRepository.findById(bookingDTO.getShowtimeid())
                 .orElseThrow(() -> new RuntimeException("Khong tim thay ShowTimeId"));
 
@@ -66,8 +67,10 @@ public class BookingService implements IBookingService {
     public Booking updateBooking(int id, BookingDTO bookingDTO) throws Exception {
         Booking existingBooking = bookingRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("Khong tim thay BookingId"));
+
         User existingUser = userRepository.findById(bookingDTO.getUserid())
                 .orElseThrow(() -> new RuntimeException("Khong tim thay UserId"));
+
         ShowTime existingShowTime = showTimeRepository.findById(bookingDTO.getShowtimeid())
                 .orElseThrow(() -> new RuntimeException("Khong tim thay ShowTimeId"));
 

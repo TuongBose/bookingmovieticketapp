@@ -71,6 +71,7 @@ CREATE TABLE bookings (
     totalprice INT NOT NULL,
     paymentmethod VARCHAR(50) NOT NULL,
     paymentstatus VARCHAR(50) NOT NULL,
+    isactive BIT DEFAULT 1,
     FOREIGN KEY (userid) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (showtimeid) REFERENCES showtimes(id) ON DELETE CASCADE
 );
@@ -140,7 +141,8 @@ INSERT INTO payments (bookingid, totalprice, paymentmethod, paymentstatus, payme
 VALUES
     (1, 240000, 'Credit Card', 'Completed', '2025-04-14 10:05:00'),  -- Booking 1
     (2, 300000, 'Cash', 'Pending', '2025-04-14 11:05:00');          -- Booking 2
-    
+
+USE bookingmovieticketapp;
 SELECT * FROM users;
 SELECT * FROM movies;
 SELECT * FROM casts;
