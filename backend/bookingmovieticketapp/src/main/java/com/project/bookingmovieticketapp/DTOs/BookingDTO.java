@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 public class BookingDTO {
     private int userid;
     private int showtimeid;
-    private LocalDateTime bookingdate;
     private int totalprice;
     private String paymentmethod;
     private String paymentstatus;

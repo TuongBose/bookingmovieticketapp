@@ -175,27 +175,22 @@ public class MovieService implements IMovieService {
     }
 
     @Override
-    public Movie getMovieById(int id) {
-        return null;
+    public List<Movie> getNowPlaying() {
+        return movieRepository.findByReleasedateBetween(maximumNowPlaying,minimumNowPlaying);
+    }
+
+    @Override
+    public List<Movie> getUpComing() {
+        return movieRepository.findByReleasedateBetween(maximumUpComing,minimumUpComing);
     }
 
     @Override
     public Page<Movie> getAllMovie(PageRequest pageRequest) {
-        return null;
-    }
-
-    @Override
-    public Movie updateMovie(int id, MovieDTO movieDTO) {
-        return null;
-    }
-
-    @Override
-    public void deleteMovie(int id) {
-
+        return movieRepository.findAll(pageRequest);
     }
 
     @Override
     public boolean existsByName(String name) {
-        return false;
+        return movieRepository.existsByName(name);
     }
 }

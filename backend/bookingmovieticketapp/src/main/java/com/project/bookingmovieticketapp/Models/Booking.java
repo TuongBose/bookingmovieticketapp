@@ -32,8 +32,10 @@ public class Booking {
     private int totalprice;
 
     @Column(name = "paymentmethod",nullable = false)
-    private int paymentmethod;
+    private String paymentmethod;
 
     @Column(name = "paymentstatus",nullable = false)
-    private int paymentstatus;
+    private String paymentstatus;
+
+    private boolean isactive;
 }

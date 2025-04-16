@@ -27,6 +27,7 @@ public class UserService implements IUserService {
                 .password(userDTO.getPassword())
                 .phonenumber(userDTO.getPhonenumber())
                 .dateofbirth(userDTO.getDateofbirth())
+                .isactive(true)
                 .rolename(false)
                 .build();
         return userRepository.save(newUser);

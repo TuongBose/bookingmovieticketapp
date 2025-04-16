@@ -11,9 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface IMovieService {
-    Movie getMovieById(int id);
+    List<Movie> getNowPlaying();
+    List<Movie> getUpComing();
     Page<Movie> getAllMovie(PageRequest pageRequest);
-    Movie updateMovie(int id, MovieDTO movieDTO);
-    void deleteMovie(int id);
     boolean existsByName(String name);
 }
