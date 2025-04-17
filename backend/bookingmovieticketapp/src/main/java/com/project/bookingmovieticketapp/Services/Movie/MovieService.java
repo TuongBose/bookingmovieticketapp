@@ -2,8 +2,9 @@ package com.project.bookingmovieticketapp.Services.Movie;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.bookingmovieticketapp.DTOs.MovieDTO;
+import com.project.bookingmovieticketapp.Models.Cast;
 import com.project.bookingmovieticketapp.Models.Movie;
+import com.project.bookingmovieticketapp.Repositories.CastRepository;
 import com.project.bookingmovieticketapp.Repositories.MovieRepository;
 import com.project.bookingmovieticketapp.Responses.TMDBNowPlayingResponse;
 import com.project.bookingmovieticketapp.Responses.TMDBUpComingResponse;
@@ -22,6 +23,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MovieService implements IMovieService {
     final MovieRepository movieRepository;
+    final CastRepository castRepository;
 
     @Value("${tmdb.api.key}")
     private String apiKey;
@@ -99,6 +101,32 @@ public class MovieService implements IMovieService {
         };
     }
 
+    private List<Cast> getCasts(int movieId) {
+        try {
+            String url = "https://api.themoviedb.org/3/movie/" + movieId + "/credits?api_key=" + apiKey;
+            String jsonResponse = restTemplate.getForObject(url, String.class);
+
+            if (jsonResponse == null) {
+                return Collections.emptyList();
+            }
+
+            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {});
+            List<Map<String, Object>> castList = (List<Map<String, Object>>) responseMap.get("cast");
+
+            List<Cast> casts = new ArrayList<>();
+            for (Map<String, Object> cast : castList) {
+                if (casts.size() >= 5) break; // Lấy tối đa 5 diễn viên
+                Cast newCast = Cast.builder()
+                        .actorname((String) cast.get("name"))
+                        .build();
+                casts.add(newCast);
+            }
+            return casts;
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
     private void syncMoviesFromTMDB() {
         TMDBNowPlayingResponse responseNowPlaying = getNowPlayingMovies();
         if (responseNowPlaying != null && responseNowPlaying.getResults() != null) {
@@ -121,6 +149,12 @@ public class MovieService implements IMovieService {
                             .director(getDirector(tmdbMovie.getId()))
                             .build();
                     movieRepository.save(newMovie);
+
+                    List<Cast> casts = getCasts(tmdbMovie.getId());
+                    for (Cast cast : casts) {
+                        cast.setMovie(newMovie); // Liên kết cast với movie
+                        castRepository.save(cast);
+                    }
                 }
             }
         }
@@ -145,6 +179,12 @@ public class MovieService implements IMovieService {
                             .director(getDirector(tmdbMovie.getId()))
                             .build();
                     movieRepository.save(newMovie);
+
+                    List<Cast> casts = getCasts(tmdbMovie.getId());
+                    for (Cast cast : casts) {
+                        cast.setMovie(newMovie); // Liên kết cast với movie
+                        castRepository.save(cast);
+                    }
                 }
             }
         }

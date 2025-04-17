@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Setter
@@ -34,4 +35,7 @@ public class Movie {
     private Double voteaverage;
 
     private String director;
+
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<Cast> casts;
 }

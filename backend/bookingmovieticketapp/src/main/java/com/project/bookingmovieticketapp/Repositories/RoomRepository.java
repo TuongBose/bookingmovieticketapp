@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface RoomRepository extends JpaRepository<Room,Integer> {
     List<Room> findByCinemaId(Cinema cinema);
+    List<Room> findByCinemaIdIn(List<Integer> cinemaIds);
 }

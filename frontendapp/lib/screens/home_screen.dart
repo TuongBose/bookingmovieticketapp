@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../data/cinema_data.dart'; // Giả sử bạn có file này
 import '../models/cinema.dart';   // Giả sử bạn có file này
 import '../screens/movie_detail_screen.dart'; // Giả sử bạn có file này
+import '../services/CinemaService.dart';
 import '../services/MovieService.dart';
 import '../models/movie.dart';
 
@@ -20,31 +20,51 @@ class HomeScreenState extends State<HomeScreen> {
   List<Cinema> _filteredCinemas = [];
 
   bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = "";
   final PageController _pageController = PageController(viewportFraction: 0.9);
   int _currentCardPage = 0;
   Timer? _timer;
   String _selectedLocation = "Toàn quốc";
 
-  // --- loadMovies, initState, _startAutoScroll, dispose (GIỮ NGUYÊN) ---
-  void loadMovies() async {
-    // ... (Giữ nguyên logic loadMovies)
-    MovieService movieService = MovieService();
-    final moviesNowPlaying = await movieService.getNowPlaying();
-    final moviesUpComing = await movieService.getUpComing();
+  Future<void> loadData() async {
     setState(() {
-      _moviesNowPlaying = moviesNowPlaying;
-      _moviesUpComing = moviesUpComing;
-      // _filteredCinemas = sampleCinemas; // Cập nhật nếu cần
-      _isLoading = false;
-      _startAutoScroll();
+      _isLoading = true;
+      _hasError = false;
+      _errorMessage = '';
     });
+
+    try {
+      // Tải danh sách phim
+      MovieService movieService = MovieService();
+      final moviesNowPlaying = await movieService.getNowPlaying();
+      final moviesUpComing = await movieService.getUpComing();
+
+      // Tải danh sách rạp
+      CinemaService cinemaService = CinemaService();
+      final cinemas = await cinemaService.getCinemas();
+
+      setState(() {
+        _moviesNowPlaying = moviesNowPlaying;
+        _moviesUpComing = moviesUpComing;
+        _filteredCinemas = cinemas; // Khởi tạo _filteredCinemas từ API
+        _isLoading = false;
+      });
+
+      _startAutoScroll();
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+        _errorMessage = 'Không thể tải dữ liệu: $e';
+      });
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    loadMovies();
-    _filteredCinemas = sampleCinemas; // Khởi tạo ở đây nếu sampleCinemas là global
+    loadData();
   }
 
   void _startAutoScroll() {
@@ -99,7 +119,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   List<String> getUniqueCities() {
     // ... (Giữ nguyên logic getUniqueCities)
-    final cities = sampleCinemas.map((cinema) => cinema.city).toSet().toList();
+    final cities = _filteredCinemas.map((cinema) => cinema.city).toSet().toList();
     cities.insert(0, "Toàn quốc"); // Thêm "Toàn quốc" vào đầu danh sách
     return cities;
   }
@@ -208,10 +228,10 @@ class HomeScreenState extends State<HomeScreen> {
                             _selectedLocation = selectedCity;
                             // Lọc rạp theo thành phố (nếu cần)
                             if (_selectedLocation == "Toàn quốc") {
-                              _filteredCinemas = sampleCinemas;
+                              _filteredCinemas = _filteredCinemas;
                             } else {
                               _filteredCinemas =
-                                  sampleCinemas
+                                  _filteredCinemas
                                       .where(
                                         (cinema) =>
                                     cinema.city == _selectedLocation,

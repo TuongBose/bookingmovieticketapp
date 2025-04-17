@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontendapp/screens/payment_screen.dart';
 import '../data/booking_data.dart';
 import '../data/bookingdetail_data.dart';
-import '../data/room_data.dart';
-import '../data/seat_data.dart';
 import '../models/cinema.dart';
 import '../models/movie.dart';
 import '../models/showtime.dart';

@@ -15,21 +15,12 @@ class Showtime {
     required this.price,
   });
 
-  factory Showtime.fromMap(Map<String, dynamic> map) => Showtime(
-    id: map['ID'],
-    movieId: map['MOVIEID'],
-    roomId: map['ROOMID'],
-    showDate: DateTime.parse(map['SHOWDATE']),
-    startTime: DateTime.parse(map['STARTTIME']),
-    price: map['PRICE'],
+  factory Showtime.fromJson(Map<String, dynamic> json) => Showtime(
+    id: json['id'],
+    movieId: json['movieId'],
+    roomId: json['roomId'],
+    showDate: DateTime.parse(json['showDate']),
+    startTime: DateTime.parse(json['startTime']),
+    price: json['price'],
   );
-
-  Map<String, dynamic> toMap() => {
-    'ID': id,
-    'MOVIEID': movieId,
-    'ROOMID': roomId,
-    'SHOWDATE': showDate,
-    'STARTTIME': startTime,
-    'PRICE': price,
-  };
 } 

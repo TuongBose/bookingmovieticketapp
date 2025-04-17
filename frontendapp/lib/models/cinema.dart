@@ -14,4 +14,13 @@ class Cinema {
     required this.address,
     required this.phoneNumber,
   });
+
+  factory Cinema.fromJson(Map<String, dynamic> json) => Cinema(
+    id: json['id'],
+    name: json['name'],
+    city: json['city'],
+    coordinates: json['coordinates'],
+    address: json['address'],
+    phoneNumber: json['phoneNumber'],
+  );
 }

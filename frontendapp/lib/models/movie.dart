@@ -24,4 +24,22 @@ class Movie {
     this.casts,
     this.director
   });
+
+  factory Movie.fromJson(Map<String, dynamic> json) {
+    return Movie(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'] ?? 'Chưa có thông tin',
+      duration: json['duration'] ?? 0,
+      releaseDate: json['releasedate'],
+      posterUrl: json['posterurl'] ?? '',
+      bannerUrl: json['bannerurl'] ?? '',
+      ageRating: json['agerating'] ?? 'ALL',
+      voteAverage: (json['voteaverage'] as num).toDouble(),
+      casts: json['casts'] != null
+          ? (json['casts'] as List).map((cast) => cast['actorname'] as String).toList()
+          : null,
+      director: json['director'],
+    );
+  }
 }

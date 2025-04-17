@@ -8,4 +8,10 @@ class Seat {
     required this.roomId,
     required this.seatNumber,
   });
+
+  factory Seat.fromJson(Map<String, dynamic> json) => Seat(
+    id: json['id'],
+    roomId: json['roomId'],
+    seatNumber: json['seatNumber'],
+  );
 }

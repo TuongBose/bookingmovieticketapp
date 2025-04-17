@@ -12,4 +12,12 @@ class Room {
     required this.seatColumnMax,
     required this.seatRowMax,
   });
+
+  factory Room.fromJson(Map<String, dynamic> json)=> Room(
+    id: json['id'],
+    cinemaId: json['cinemaId'],
+    name: json['name'],
+    seatColumnMax: json['seatColumnMax'],
+    seatRowMax: json['seatRowMax'],
+  );
 }
