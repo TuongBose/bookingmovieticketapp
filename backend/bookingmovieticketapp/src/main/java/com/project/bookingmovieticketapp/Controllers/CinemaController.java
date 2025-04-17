@@ -17,7 +17,7 @@ import java.util.List;
 public class CinemaController {
     private final CinemaService cinemaService;
 
-    @GetMapping("")
+    @GetMapping("/movieandcity")
     public ResponseEntity<List<Cinema>> getCinemaByMovieIdAndCity(
             @RequestParam int movieId,
             @RequestParam String city) {

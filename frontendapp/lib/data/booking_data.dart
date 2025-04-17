@@ -9,6 +9,7 @@ final List<Booking> sampleBookings = [
     totalPrice: 180000.0,
     paymentMethod: 'Credit Card',
     paymentStatus: 'Completed',
+    isActive: true
   ),
   Booking(
     id: 2,
@@ -18,6 +19,7 @@ final List<Booking> sampleBookings = [
     totalPrice: 90000.0,
     paymentMethod: 'Mobile Payment',
     paymentStatus: 'Pending',
+      isActive: true
   ),
   Booking(
     id: 3,
@@ -27,5 +29,6 @@ final List<Booking> sampleBookings = [
     totalPrice: 270000.0,
     paymentMethod: 'Cash',
     paymentStatus: 'Completed',
+      isActive: true
   ),
 ];

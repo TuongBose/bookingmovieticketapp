@@ -1,5 +1,5 @@
 class Showtime {
-  final int? id;
+  final int id;
   final int movieId;
   final int roomId;
   final DateTime showDate;
@@ -7,7 +7,7 @@ class Showtime {
   final int price;
 
   Showtime({
-    this.id,
+    required this.id,
     required this.movieId,
     required this.roomId,
     required this.showDate,

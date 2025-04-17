@@ -27,4 +27,10 @@ public class MovieController {
         List<Movie> dsMovieUpComing = movieService.getUpComing();
         return ResponseEntity.ok(dsMovieUpComing);
     }
+
+    @GetMapping("/similar/{movieId}")
+    public ResponseEntity<List<Movie>> getSimilarMovies(@PathVariable int movieId) {
+        List<Movie> similarMovies = movieService.getSimilarMovies(movieId);
+        return ResponseEntity.ok(similarMovies);
+    }
 }

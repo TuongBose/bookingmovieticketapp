@@ -38,6 +38,6 @@ public class ShowTimeService implements IShowTimeService{
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.atTime(23, 59, 59);
 
-        return showTimeRepository.findByMovieIdAndRoomIdInAndShowDateBetween(existingMovie, roomIds, start, end);
+        return showTimeRepository.findByMovieAndRoomIdInAndShowdateBetween(existingMovie, roomIds, start, end);
     }
 }

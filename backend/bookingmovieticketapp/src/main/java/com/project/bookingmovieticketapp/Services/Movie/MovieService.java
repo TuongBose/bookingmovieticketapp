@@ -7,6 +7,7 @@ import com.project.bookingmovieticketapp.Models.Movie;
 import com.project.bookingmovieticketapp.Repositories.CastRepository;
 import com.project.bookingmovieticketapp.Repositories.MovieRepository;
 import com.project.bookingmovieticketapp.Responses.TMDBNowPlayingResponse;
+import com.project.bookingmovieticketapp.Responses.TMDBSimilarResponse;
 import com.project.bookingmovieticketapp.Responses.TMDBUpComingResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -127,6 +129,47 @@ public class MovieService implements IMovieService {
         }
     }
 
+    private String getDirector(int movieId) {
+        try {
+            String url = "https://api.themoviedb.org/3/movie/" + movieId + "/credits?api_key=" + apiKey;
+            String jsonResponse = restTemplate.getForObject(url, String.class);
+
+            if (jsonResponse == null) {
+                return null;
+            }
+
+            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {
+            });
+            List<Map<String, Object>> crewList = (List<Map<String, Object>>) responseMap.get("crew");
+
+            for (Map<String, Object> crew : crewList) {
+                if ("Director".equals(crew.get("job"))) {
+                    return (String) crew.get("name");
+                }
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public List<Movie> getSimilarMovies(int movieId) {
+        // Gọi TMDB để lấy danh sách phim tương tự
+        String url = "https://api.themoviedb.org/3/movie/" + movieId + "/similar?api_key=" + apiKey + "&language=vi-VN&page=1";
+        TMDBSimilarResponse response = restTemplate.getForObject(url, TMDBSimilarResponse.class);
+
+        if (response != null && response.getResults() != null) {
+            // Lấy danh sách ID phim tương tự
+            List<Integer> similarMovieIds = response.getResults().stream()
+                    .map(TMDBSimilarResponse.TMDBMovie::getId)
+                    .collect(Collectors.toList());
+
+            // Lấy thông tin phim từ database (đã bao gồm casts, director, v.v.)
+            return movieRepository.findByIdIn(similarMovieIds);
+        }
+        return Collections.emptyList();
+    }
+
     private void syncMoviesFromTMDB() {
         TMDBNowPlayingResponse responseNowPlaying = getNowPlayingMovies();
         if (responseNowPlaying != null && responseNowPlaying.getResults() != null) {
@@ -190,29 +233,7 @@ public class MovieService implements IMovieService {
         }
     }
 
-    private String getDirector(int movieId) {
-        try {
-            String url = "https://api.themoviedb.org/3/movie/" + movieId + "/credits?api_key=" + apiKey;
-            String jsonResponse = restTemplate.getForObject(url, String.class);
 
-            if (jsonResponse == null) {
-                return null;
-            }
-
-            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {
-            });
-            List<Map<String, Object>> crewList = (List<Map<String, Object>>) responseMap.get("crew");
-
-            for (Map<String, Object> crew : crewList) {
-                if ("Director".equals(crew.get("job"))) {
-                    return (String) crew.get("name");
-                }
-            }
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     @Override
     public List<Movie> getNowPlaying() {

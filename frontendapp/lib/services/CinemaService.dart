@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/cinema.dart';
 
 class CinemaService {
-  static const String _baseUrl = 'http://192.168.1.x:8080'; // Thay bằng IP của máy chạy backend
+  static const String _baseUrl = 'http://192.168.1.67:8080'; // Thay bằng IP của máy chạy backend
 
   Future<List<Cinema>> getCinemas() async {
     final url = Uri.parse('$_baseUrl/api/v1/cinemas');

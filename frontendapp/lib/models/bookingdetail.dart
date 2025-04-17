@@ -11,17 +11,10 @@ class BookingDetail {
     required this.price,
   });
 
-  factory BookingDetail.fromMap(Map<String, dynamic> map) => BookingDetail(
-    id: map['ID'],
-    bookingId: map['BOOKINGID'],
-    seatId: map['SEATID'],
-    price: map['PRICE'].toDouble(),
+  factory BookingDetail.fromJson(Map<String, dynamic> json) => BookingDetail(
+    id: json['id'],
+    bookingId: json['bookingId'],
+    seatId: json['seatId'],
+    price: json['price'].toDouble(),
   );
-
-  Map<String, dynamic> toMap() => {
-    'ID': id,
-    'BOOKINGID': bookingId,
-    'SEATID': seatId,
-    'PRICE': price,
-  };
 }

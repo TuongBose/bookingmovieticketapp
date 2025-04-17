@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frontendapp/screens/payment_screen.dart';
-import '../data/booking_data.dart';
-import '../data/bookingdetail_data.dart';
 import '../models/cinema.dart';
 import '../models/movie.dart';
 import '../models/showtime.dart';
 import '../models/room.dart';
 import '../models/seat.dart';
+import '../services/BookingService.dart';
+import '../services/RoomService.dart';
 
 class SeatSelectionScreen extends StatefulWidget {
   final Room room;
@@ -47,12 +47,56 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   final double _labelSeatSpacing = 5.0;
   final double _seatPadding = 2.0;
 
-  Room getRoomById(int roomId) {
-    return sampleRooms.firstWhere((room) => room.id == roomId);
+  Future<void> _loadBookedSeats() async {
+    setState(() {
+      _isLoadingBookedSeats = true;
+    });
+
+    try {
+      BookingService bookingService = BookingService();
+      // Lấy danh sách booking cho suất chiếu hiện tại
+      final bookingsForShowtime = await bookingService.getBookingsByShowtimeId(_selectedShowtime.id);
+
+      // Lấy danh sách seatId đã đặt từ booking details
+      final bookedSeatIds = <int>{};
+      for (var booking in bookingsForShowtime) {
+        final details = await bookingService.getBookingDetailsByBookingId(booking.id);
+        bookedSeatIds.addAll(details.map((detail) => detail.seatId));
+      }
+
+      setState(() {
+        _bookedSeatIdsForShowtime = bookedSeatIds;
+        _isLoadingBookedSeats = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingBookedSeats = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi tải ghế đã đặt: $e')),
+      );
+    }
   }
 
-  List<Seat> getSeatsByRoomId(int roomId) {
-    return sampleSeats.where((seat) => seat.roomId == roomId).toList();
+  Future<void> _updateRoomAndSeats(int roomId) async {
+    try {
+      RoomService roomService = RoomService();
+      // Lấy thông tin phòng mới
+      final room = await roomService.getRoomById(roomId);
+      // Lấy danh sách ghế mới
+      final seats = await roomService.getSeatsByRoomId(roomId);
+
+      setState(() {
+        _selectedRoom = room;
+        _allSeats = seats;
+        _selectedSeats.clear();
+        _loadBookedSeats();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi cập nhật phòng và ghế: $e')),
+      );
+    }
   }
 
   @override
@@ -62,32 +106,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     _selectedRoom = widget.room; // Khởi tạo phòng ban đầu
     _allSeats = widget.allSeats; // Khởi tạo danh sách ghế ban đầu
     _loadBookedSeats();
-  }
-
-  // Tải danh sách ghế đã đặt cho suất chiếu hiện tại
-  void _loadBookedSeats() {
-    setState(() {
-      _isLoadingBookedSeats = true;
-    });
-
-    // Lấy danh sách booking cho suất chiếu hiện tại
-    final bookingsForShowtime = sampleBookings
-        .where((booking) => booking.showtimeId == _selectedShowtime.id)
-        .toList();
-
-    // Lấy danh sách seatId đã đặt từ booking details
-    final bookedSeatIds = <int>{};
-    for (var booking in bookingsForShowtime) {
-      final details = sampleBookingDetails
-          .where((detail) => detail.bookingId == booking.id)
-          .toList();
-      bookedSeatIds.addAll(details.map((detail) => detail.seatId));
-    }
-
-    setState(() {
-      _bookedSeatIdsForShowtime = bookedSeatIds;
-      _isLoadingBookedSeats = false;
-    });
   }
 
   @override
@@ -144,16 +162,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 // DropdownButton để chọn suất chiếu
                 DropdownButton<Showtime>(
                   value: _selectedShowtime,
-                  onChanged: (Showtime? newShowtime) {
+                  onChanged: (Showtime? newShowtime)async {
                     if (newShowtime != null) {
                       setState(() {
                         _selectedShowtime = newShowtime;
-                        // Cập nhật phòng và ghế dựa trên roomId của suất chiếu mới
-                        _selectedRoom = getRoomById(newShowtime.roomId);
-                        _allSeats = getSeatsByRoomId(newShowtime.roomId);
-                        _selectedSeats.clear();
-                        _loadBookedSeats();
                       });
+                      await _updateRoomAndSeats(newShowtime.roomId);
                     }
                   },
                   items: widget.listshowtime.map((Showtime showtime) {

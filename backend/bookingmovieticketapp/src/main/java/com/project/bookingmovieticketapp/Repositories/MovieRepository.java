@@ -12,4 +12,5 @@ public interface MovieRepository extends JpaRepository<Movie,Integer> {
     List<Movie> findByReleasedateBetween(LocalDate start, LocalDate end);
     boolean existsByName(String name);
     Page<Movie> findAll(Pageable pageable);
+    List<Movie> findByIdIn(List<Integer> ids);
 }
