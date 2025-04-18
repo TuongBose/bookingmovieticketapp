@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/cinema.dart';   // Giả sử bạn có file này
 import '../screens/movie_detail_screen.dart'; // Giả sử bạn có file này
 import '../services/CinemaService.dart';
@@ -77,7 +78,7 @@ class HomeScreenState extends State<HomeScreen> {
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
         if (_pageController.hasClients) {
-          int nextPage = (_currentCardPage + 1) % _moviesNowPlaying.length;
+          int nextPage = (_currentCardPage + 1) % (_moviesNowPlaying.length>5?5:_moviesNowPlaying.length);
           _pageController.animateToPage(
             nextPage,
             duration: const Duration(milliseconds: 500),
@@ -169,7 +170,7 @@ class HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _moviesNowPlaying.length,
+                      _moviesNowPlaying.length>5?5:_moviesNowPlaying.length,
                           (index) => buildIndicatorDot(_currentCardPage == index),
                     ),
                   ),
@@ -333,7 +334,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Khởi chiếu: ${movie.releaseDate}', // Hoặc thông tin khác
+                  'Khởi chiếu: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(movie.releaseDate),)}', // Hoặc thông tin khác
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],

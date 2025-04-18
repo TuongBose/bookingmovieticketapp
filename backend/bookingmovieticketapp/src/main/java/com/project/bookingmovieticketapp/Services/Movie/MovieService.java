@@ -148,6 +148,26 @@ public class MovieService implements IMovieService {
         }
     }
 
+    // Thêm hàm getMovieRunTime
+    public Integer getMovieRunTime(int movieId) {
+        try {
+            String url = "https://api.themoviedb.org/3/movie/" + movieId + "?api_key=" + apiKey + "&language=en-US";
+            String jsonResponse = restTemplate.getForObject(url, String.class);
+
+            if (jsonResponse == null) {
+                System.out.println("Lấy runtime movie không thành công: Response null");
+                return null;
+            }
+
+            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {});
+            Integer runtime = (Integer) responseMap.get("runtime");
+            return runtime != null ? runtime : 0; // Trả về 0 nếu runtime là null
+        } catch (Exception e) {
+            System.out.println("Lấy runtime movie không thành công: " + e.getMessage());
+            return null;
+        }
+    }
+
     public List<Movie> getSimilarMovies(int movieId) {
         // Gọi TMDB để lấy danh sách phim tương tự
         String url = "https://api.themoviedb.org/3/movie/" + movieId + "/similar?api_key=" + apiKey + "&language=vi-VN&page=1";
@@ -176,7 +196,7 @@ public class MovieService implements IMovieService {
                             .id(tmdbMovie.getId()) // Dùng TMDb ID làm ID trong bảng movies
                             .name(tmdbMovie.getTitle())
                             .description(tmdbMovie.getOverview().isEmpty() ? "Chưa có thông tin" : tmdbMovie.getOverview())
-                            .duration(0) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
+                            .duration(getMovieRunTime(tmdbMovie.getId())) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
                             .releasedate(LocalDate.parse(tmdbMovie.getRelease_date()))
                             .posterurl("https://image.tmdb.org/t/p/w500" + tmdbMovie.getPoster_path())
                             .bannerurl("https://image.tmdb.org/t/p/w1280" + tmdbMovie.getBackdrop_path())
@@ -204,7 +224,7 @@ public class MovieService implements IMovieService {
                             .id(tmdbMovie.getId()) // Dùng TMDb ID làm ID trong bảng movies
                             .name(tmdbMovie.getTitle())
                             .description(tmdbMovie.getOverview().isEmpty() ? "Chưa có thông tin" : tmdbMovie.getOverview())
-                            .duration(0) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
+                            .duration(getMovieRunTime(tmdbMovie.getId())) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
                             .releasedate(LocalDate.parse(tmdbMovie.getRelease_date()))
                             .posterurl("https://image.tmdb.org/t/p/w500" + tmdbMovie.getPoster_path())
                             .bannerurl("https://image.tmdb.org/t/p/w1280" + tmdbMovie.getBackdrop_path())
@@ -235,7 +255,7 @@ public class MovieService implements IMovieService {
                         .id(tmdbMovie.getId()) // Dùng TMDb ID làm ID trong bảng movies
                         .name(tmdbMovie.getTitle())
                         .description(tmdbMovie.getOverview().isEmpty() ? "Chưa có thông tin" : tmdbMovie.getOverview())
-                        .duration(0) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
+                        .duration(getMovieRunTime(tmdbMovie.getId())) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
                         .releasedate(LocalDate.parse(tmdbMovie.getRelease_date()))
                         .posterurl("https://image.tmdb.org/t/p/w500" + tmdbMovie.getPoster_path())
                         .bannerurl("https://image.tmdb.org/t/p/w1280" + tmdbMovie.getBackdrop_path())
@@ -267,7 +287,7 @@ public class MovieService implements IMovieService {
                         .id(tmdbMovie.getId()) // Dùng TMDb ID làm ID trong bảng movies
                         .name(tmdbMovie.getTitle())
                         .description(tmdbMovie.getOverview().isEmpty() ? "Chưa có thông tin" : tmdbMovie.getOverview())
-                        .duration(0) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
+                        .duration(getMovieRunTime(tmdbMovie.getId())) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
                         .releasedate(LocalDate.parse(tmdbMovie.getRelease_date()))
                         .posterurl("https://image.tmdb.org/t/p/w500" + tmdbMovie.getPoster_path())
                         .bannerurl("https://image.tmdb.org/t/p/w1280" + tmdbMovie.getBackdrop_path())
