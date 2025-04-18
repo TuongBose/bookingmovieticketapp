@@ -4,7 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:http/http.dart' as http;
 
 class MovieService {
-  static const String _baseUrl = 'http://192.168.1.67:8080'; // Thay bằng IP của máy tính
+  static const String _baseUrl = 'http://192.168.1.203:8080'; // Thay bằng IP của máy tính
 
   Future<List<Movie>> _fetchMovies(String endpoint) async {
     final url = Uri.parse('$_baseUrl/api/v1/movies/$endpoint');

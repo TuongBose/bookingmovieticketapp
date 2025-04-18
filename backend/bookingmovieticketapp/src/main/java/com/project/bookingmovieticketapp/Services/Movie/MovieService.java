@@ -35,12 +35,6 @@ public class MovieService implements IMovieService {
         syncMoviesFromTMDB();
     }
 
-    LocalDate maximumNowPlaying;
-    LocalDate minimumNowPlaying;
-
-    LocalDate minimumUpComing;
-    LocalDate maximumUpComing;
-
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -112,7 +106,8 @@ public class MovieService implements IMovieService {
                 return Collections.emptyList();
             }
 
-            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {
+            });
             List<Map<String, Object>> castList = (List<Map<String, Object>>) responseMap.get("cast");
 
             List<Cast> casts = new ArrayList<>();
@@ -173,8 +168,6 @@ public class MovieService implements IMovieService {
     private void syncMoviesFromTMDB() {
         TMDBNowPlayingResponse responseNowPlaying = getNowPlayingMovies();
         if (responseNowPlaying != null && responseNowPlaying.getResults() != null) {
-            maximumNowPlaying = LocalDate.parse(responseNowPlaying.getDates().getMaximum());
-            minimumNowPlaying = LocalDate.parse(responseNowPlaying.getDates().getMinimum());
             for (TMDBNowPlayingResponse.TMDBMovie tmdbMovie : responseNowPlaying.getResults()) {
                 // Kiểm tra xem phim đã tồn tại trong cơ sở dữ liệu chưa
                 Movie existingMovie = movieRepository.findById(tmdbMovie.getId()).orElse(null);
@@ -204,8 +197,6 @@ public class MovieService implements IMovieService {
 
         TMDBUpComingResponse responseUpComing = getUpComingMovies();
         if (responseUpComing != null && responseUpComing.getResults() != null) {
-            maximumUpComing = LocalDate.parse(responseUpComing.getDates().getMaximum());
-            minimumUpComing = LocalDate.parse(responseUpComing.getDates().getMinimum());
             for (TMDBUpComingResponse.TMDBMovie tmdbMovie : responseUpComing.getResults()) {
                 Movie existingMovie = movieRepository.findById(tmdbMovie.getId()).orElse(null);
                 if (existingMovie == null) {
@@ -234,15 +225,68 @@ public class MovieService implements IMovieService {
     }
 
 
-
     @Override
     public List<Movie> getNowPlaying() {
-        return movieRepository.findByReleasedateBetween(maximumNowPlaying,minimumNowPlaying);
+        List<Movie> nowPlayingMovieList = new ArrayList<>();
+        TMDBNowPlayingResponse responseNowPlaying = getNowPlayingMovies();
+        if (responseNowPlaying != null && responseNowPlaying.getResults() != null) {
+            for (TMDBNowPlayingResponse.TMDBMovie tmdbMovie : responseNowPlaying.getResults()) {
+                Movie newMovie = Movie.builder()
+                        .id(tmdbMovie.getId()) // Dùng TMDb ID làm ID trong bảng movies
+                        .name(tmdbMovie.getTitle())
+                        .description(tmdbMovie.getOverview().isEmpty() ? "Chưa có thông tin" : tmdbMovie.getOverview())
+                        .duration(0) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
+                        .releasedate(LocalDate.parse(tmdbMovie.getRelease_date()))
+                        .posterurl("https://image.tmdb.org/t/p/w500" + tmdbMovie.getPoster_path())
+                        .bannerurl("https://image.tmdb.org/t/p/w1280" + tmdbMovie.getBackdrop_path())
+                        .agerating(getAgeCertification(tmdbMovie.getId()))
+                        .voteaverage(tmdbMovie.getVote_average())
+                        .director(getDirector(tmdbMovie.getId()))
+                        .build();
+
+                List<Cast> casts = getCasts(tmdbMovie.getId());
+                for (Cast cast : casts) {
+                    cast.setMovie(newMovie); // Liên kết cast với movie
+                    castRepository.save(cast);
+                }
+
+                nowPlayingMovieList.add(newMovie);
+            }
+        }
+
+        return nowPlayingMovieList;
     }
 
     @Override
     public List<Movie> getUpComing() {
-        return movieRepository.findByReleasedateBetween(maximumUpComing,minimumUpComing);
+        List<Movie> upComingMovieList = new ArrayList<>();
+        TMDBUpComingResponse responseUpComing = getUpComingMovies();
+        if (responseUpComing != null && responseUpComing.getResults() != null) {
+            for (TMDBUpComingResponse.TMDBMovie tmdbMovie : responseUpComing.getResults()) {
+                Movie newMovie = Movie.builder()
+                        .id(tmdbMovie.getId()) // Dùng TMDb ID làm ID trong bảng movies
+                        .name(tmdbMovie.getTitle())
+                        .description(tmdbMovie.getOverview().isEmpty() ? "Chưa có thông tin" : tmdbMovie.getOverview())
+                        .duration(0) // TMDb không cung cấp duration, bạn có thể thêm logic khác để lấy
+                        .releasedate(LocalDate.parse(tmdbMovie.getRelease_date()))
+                        .posterurl("https://image.tmdb.org/t/p/w500" + tmdbMovie.getPoster_path())
+                        .bannerurl("https://image.tmdb.org/t/p/w1280" + tmdbMovie.getBackdrop_path())
+                        .agerating(getAgeCertification(tmdbMovie.getId()))
+                        .voteaverage(tmdbMovie.getVote_average())
+                        .director(getDirector(tmdbMovie.getId()))
+                        .build();
+
+                List<Cast> casts = getCasts(tmdbMovie.getId());
+                for (Cast cast : casts) {
+                    cast.setMovie(newMovie); // Liên kết cast với movie
+                    castRepository.save(cast);
+                }
+
+                upComingMovieList.add(newMovie);
+            }
+        }
+
+        return upComingMovieList;
     }
 
     @Override

@@ -18,6 +18,7 @@ class HomeScreenState extends State<HomeScreen> {
   List<Movie> _moviesNowPlaying = [];
   List<Movie> _moviesUpComing = [];
   List<Cinema> _filteredCinemas = [];
+  List<Cinema> _cinemas = [];
 
   bool _isLoading = true;
   bool _hasError = false;
@@ -37,17 +38,20 @@ class HomeScreenState extends State<HomeScreen> {
     try {
       // Tải danh sách phim
       MovieService movieService = MovieService();
-      final moviesNowPlaying = await movieService.getNowPlaying();
-      final moviesUpComing = await movieService.getUpComing();
 
       // Tải danh sách rạp
       CinemaService cinemaService = CinemaService();
-      final cinemas = await cinemaService.getCinemas();
 
+      final results = await Future.wait([
+        movieService.getNowPlaying(),
+        movieService.getUpComing(),
+        cinemaService.getCinemas(),
+      ]);
       setState(() {
-        _moviesNowPlaying = moviesNowPlaying;
-        _moviesUpComing = moviesUpComing;
-        _filteredCinemas = cinemas; // Khởi tạo _filteredCinemas từ API
+        _moviesNowPlaying = (results[0] as List<Movie>) ?? [];
+        _moviesUpComing = (results[1] as List<Movie>) ?? [];
+        _cinemas = (results[2] as List<Cinema>) ?? [];
+        _filteredCinemas = _cinemas; // Khởi tạo _filteredCinemas từ API
         _isLoading = false;
       });
 
@@ -153,7 +157,7 @@ class HomeScreenState extends State<HomeScreen> {
                           _currentCardPage = index;
                         });
                       },
-                      itemCount: _moviesNowPlaying.length,
+                      itemCount: _moviesNowPlaying.length>5?5:_moviesNowPlaying.length,
                       itemBuilder: (context, index) {
                         final movie = _moviesNowPlaying[index];
                         return _buildBannerItem(movie);
@@ -228,15 +232,10 @@ class HomeScreenState extends State<HomeScreen> {
                             _selectedLocation = selectedCity;
                             // Lọc rạp theo thành phố (nếu cần)
                             if (_selectedLocation == "Toàn quốc") {
-                              _filteredCinemas = _filteredCinemas;
+                              _filteredCinemas = _cinemas;
                             } else {
                               _filteredCinemas =
-                                  _filteredCinemas
-                                      .where(
-                                        (cinema) =>
-                                    cinema.city == _selectedLocation,
-                                  )
-                                      .toList();
+                                  _cinemas.where((cinema) => cinema.city == _selectedLocation,).toList();
                             }
                           });
                         }
