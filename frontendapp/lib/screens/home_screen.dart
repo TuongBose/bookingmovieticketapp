@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import '../models/cinema.dart';   // Giả sử bạn có file này
 import '../screens/movie_detail_screen.dart'; // Giả sử bạn có file này
 import '../services/CinemaService.dart';
@@ -49,9 +50,9 @@ class HomeScreenState extends State<HomeScreen> {
         cinemaService.getCinemas(),
       ]);
       setState(() {
-        _moviesNowPlaying = (results[0] as List<Movie>) ?? [];
-        _moviesUpComing = (results[1] as List<Movie>) ?? [];
-        _cinemas = (results[2] as List<Cinema>) ?? [];
+        _moviesNowPlaying = (results[0] as List<Movie>);
+        _moviesUpComing = (results[1] as List<Movie>);
+        _cinemas = (results[2] as List<Cinema>);
         _filteredCinemas = _cinemas; // Khởi tạo _filteredCinemas từ API
         _isLoading = false;
       });
@@ -132,8 +133,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // **THAY ĐỔI 1: Sử dụng SingleChildScrollView thay vì CustomScrollView**
-      body: SingleChildScrollView(
+      body:SingleChildScrollView(
         // **THAY ĐỔI 2: Sử dụng Column làm con trực tiếp**
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch, // Đảm bảo các con giãn chiều ngang
@@ -150,8 +150,24 @@ class HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: 200,
                     child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : PageView.builder(
+                        ? Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: 3, // Hiển thị 3 skeleton items
+                        itemBuilder: (context, index) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width * 0.9, // Khớp với viewportFraction
+                            margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          );
+                        },
+                      ),
+                    )                        : PageView.builder(
                       controller: _pageController,
                       onPageChanged: (index) {
                         setState(() {
@@ -363,7 +379,32 @@ class HomeScreenState extends State<HomeScreen> {
   Widget buildMoviesUpComingGrid() {
     if (_isLoading) {
       // Hiển thị loading indicator với kích thước cố định để không làm nhảy layout
-      return const Center(child: SizedBox(height: 100, child: CircularProgressIndicator()));
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 4, // Hiển thị 4 skeleton items
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.65,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemBuilder: (context, index) {
+            return Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            );
+          },
+        ),
+      );
     }
     if (_moviesUpComing.isEmpty) {
       return const Center(child: Text("Không có phim sắp chiếu"));
@@ -391,10 +432,50 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget buildMoviesNowPlayingGrid() {
     if (_isLoading) {
-      return const Center(child: SizedBox(height: 100, child: CircularProgressIndicator()));
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 4, // Hiển thị 4 skeleton items
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.65,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemBuilder: (context, index) {
+            return Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            );
+          },
+        ),
+      );
     }
     if (_moviesNowPlaying.isEmpty) {
       return const Center(child: Text("Không có phim đang chiếu"));
+    }
+    if (_hasError) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_errorMessage),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: loadData,
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
     }
     return Padding(
       padding: const EdgeInsets.all(8.0),

@@ -14,4 +14,5 @@ public class CinemaDTO {
     private String coordinates;
     private String address;
     private String phonenumber;
+    private int maxroom;
 }

@@ -33,7 +33,8 @@ CREATE TABLE cinemas (
     city VARCHAR(100) NOT NULL,
     coordinates VARCHAR(50), -- Lưu tọa độ (latitude, longitude)
     address VARCHAR(255) NOT NULL,
-    phonenumber VARCHAR(20)
+    phonenumber VARCHAR(20),
+    maxroom INT
 );
 
 CREATE TABLE rooms (
@@ -124,24 +125,19 @@ CREATE TABLE casts (
     FOREIGN KEY (movieid) REFERENCES movies(id) ON DELETE CASCADE
 );
 
-INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, createdat, isactive, rolename)
+INSERT INTO cinemas (name, city, coordinates, address, phonenumber, maxroom)
 VALUES
-    ('Admin User', 'admin@example.com', 'hashed_password_admin', '0901234567', '123 Đường Láng, Hà Nội', '1985-01-01', '2025-04-01 10:00:00', 1, 1),
-    ('Nguyen Van A', 'user1@example.com', 'hashed_password_1', '0901234568', '456 Nguyễn Trãi, TP.HCM', '1995-05-15', '2025-04-02 12:00:00', 1, 0),
-    ('Tran Thi B', 'user2@example.com', 'hashed_password_2', '0901234569', '789 Lê Lợi, Đà Nẵng', '2000-08-20', '2025-04-03 15:00:00', 1, 0);
+    ('Galaxy Nguyễn Du', 'TP.HCM', '10.7790,106.6918', '116 Nguyễn Du, Quận 1, TP.HCM', '02838222888', 4),
+    ('Galaxy Tân Bình', 'TP.HCM', '10.8012,106.6395', '246 Nguyễn Hồng Đào, Quận Tân Bình, TP.HCM', '02838496088', 5),
+    ('Galaxy Quang Trung', 'TP.HCM', '10.8491,106.6239', '304A Quang Trung, Quận Gò Vấp, TP.HCM', '02839890188', 6),
+    ('Galaxy Cần Thơ', 'Cần Thơ', '10.0321,105.7679', 'Lầu 4, TTTM Sense City, 1 Đại lộ Hòa Bình, Quận Ninh Kiều, Cần Thơ', '02923769888', 5),
+    ('Galaxy Đà Nẵng', 'Đà Nẵng', '16.0678,108.2235', 'Tầng 3, TTTM Indochina Riverside Mall, 74 Bạch Đằng, Quận Hải Châu, Đà Nẵng', '02363829888', 4),
+    ('Galaxy Linh Trung', 'TP.HCM', '10.8692,106.7796', 'Tầng 2, TTTM Vincom Thủ Đức, 216 Võ Văn Ngân, Quận Thủ Đức, TP.HCM', '02837202888', 6),
+    ('Galaxy Huỳnh Tấn Phát', 'TP.HCM', '10.7395,106.7298', '1362 Huỳnh Tấn Phát, Quận 7, TP.HCM', '02838739888', 5),
+    ('Galaxy Sala', 'TP.HCM', '10.7896,106.7525', 'Tầng 2, TTTM Takashimaya, 92-94 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM', '02838233888', 7),
+    ('Galaxy Bến Thành', 'TP.HCM', '10.7735,106.6982', 'Tầng 5, TTTM Vạn Hạnh Mall, 11 Sư Vạn Hạnh, Quận 10, TP.HCM', '02838651888', 4),
+    ('Galaxy Hải Phòng', 'Hải Phòng', '20.8449,106.6881', 'Tầng 5, TTTM Vincom Plaza Lê Thánh Tông, 1 Lê Thánh Tông, Quận Ngô Quyền, Hải Phòng', '02253856888', 5);
     
-INSERT INTO bookingdetails (bookingid, seatid, price)
-VALUES
-    (1, 1, 120000),  -- Booking 1, Seat A1 (The Matrix)
-    (1, 2, 120000),  -- Booking 1, Seat A2 (The Matrix)
-    (2, 7, 150000),  -- Booking 2, Seat A1 (Inception)
-    (2, 8, 150000);  -- Booking 2, Seat A2 (Inception)
-    
-INSERT INTO payments (bookingid, totalprice, paymentmethod, paymentstatus, paymenttime)
-VALUES
-    (1, 240000, 'Credit Card', 'Completed', '2025-04-14 10:05:00'),  -- Booking 1
-    (2, 300000, 'Cash', 'Pending', '2025-04-14 11:05:00');          -- Booking 2
-
 USE bookingmovieticketapp;
 SELECT * FROM users;
 SELECT * FROM movies;

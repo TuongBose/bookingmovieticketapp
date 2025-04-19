@@ -7,5 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface SeatRepository extends JpaRepository<Seat,Integer> {
-    List<Seat> findByRoomId(Room roomId);
+    List<Seat> findByRoom(Room roomId);
+    boolean existsByRoomIdAndSeatnumber(int roomid, String seatnumber);
+    long countByRoom(Room room);
 }

@@ -57,7 +57,7 @@ public class CinemaService implements ICinemaService{
     @Override
     public List<Cinema> getCinemaByMovieIdAndCity(int movieId, String city) {
         // Lấy CinemaIds dựa vào thành phố (city)
-        List<Cinema> filteredCinemas = (city.equals("Toàn quốc"))
+        List<Cinema> filteredCinemas = (city.equals("all"))
                 ? cinemaRepository.findAll()
                 : cinemaRepository.findByCity(city);
 

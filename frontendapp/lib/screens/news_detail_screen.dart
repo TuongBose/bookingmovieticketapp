@@ -111,7 +111,7 @@ class NewsDetailScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                               // Ngày phát hành
                               Text(
-                                movie.releaseDate ?? 'Không rõ',
+                                movie.releaseDate,
                                 style: const TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                             ],

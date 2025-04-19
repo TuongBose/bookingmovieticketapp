@@ -27,4 +27,5 @@ public class Cinema {
     private String address;
 
     private String phonenumber;
+    private int maxroom;
 }

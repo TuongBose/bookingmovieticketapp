@@ -1,14 +1,16 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;import '../config.dart';
+
 import '../models/cinema.dart';
 
 class CinemaService {
-  static const String _baseUrl = 'http://192.168.1.67:8080'; // Thay bằng IP của máy chạy backend
-
   Future<List<Cinema>> getCinemas() async {
-    final url = Uri.parse('$_baseUrl/api/v1/cinemas');
+    final url = Uri.parse('${Config.BASEURL}/api/v1/cinemas');
     try {
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
+      );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => Cinema.fromJson(json)).toList();

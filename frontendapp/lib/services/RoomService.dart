@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config.dart';
 import '../models/room.dart';
 import '../models/seat.dart';
 
 class RoomService {
-  static const String _baseUrl = 'http://192.168.1.67:8080'; // Thay bằng IP của máy tính
-
   Future<Room> getRoomById(int roomId) async {
-    final url = Uri.parse('$_baseUrl/api/v1/rooms/$roomId');
+    final url = Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -22,7 +21,7 @@ class RoomService {
   }
 
   Future<List<Seat>> getSeatsByRoomId(int roomId) async {
-    final url = Uri.parse('$_baseUrl/api/v1/rooms/$roomId/seats');
+    final url = Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId/seats');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

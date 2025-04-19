@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
+import 'package:frontendapp/config.dart';
 import '../models/movie.dart';
 
 class MovieService {
-  static const String _baseUrl = 'http://192.168.1.67:8080'; // Thay bằng IP của máy tính
-
   Future<List<Movie>> _fetchMovies(String endpoint) async {
-    final url = Uri.parse('$_baseUrl/api/v1/movies/$endpoint');
+    final url = Uri.parse('${Config.BASEURL}/api/v1/movies/$endpoint');
     try {
       final response = await http.get(
         url,

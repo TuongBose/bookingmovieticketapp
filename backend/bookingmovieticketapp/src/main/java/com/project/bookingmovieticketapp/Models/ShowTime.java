@@ -3,6 +3,7 @@ package com.project.bookingmovieticketapp.Models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -27,7 +28,7 @@ public class ShowTime {
     private Room room;
 
     @Column(name = "showdate",nullable = false)
-    private Date showdate;
+    private LocalDate showdate;
 
     @Column(name = "starttime",nullable = false)
     private LocalDateTime starttime;

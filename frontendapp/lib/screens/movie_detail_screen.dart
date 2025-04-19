@@ -4,6 +4,7 @@ import 'package:frontendapp/screens/seat_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import '../config.dart';
 import '../models/movie.dart';
 import '../models/cinema.dart';
 import '../models/room.dart';
@@ -49,7 +50,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   @override
   void initState() {
     super.initState();
-    fetchCinemasByMovie();
+    getCinemaByMovieIdAndCity();
 
     initializeDateFormatting('vi_VN', null).then((_) {
       setState(() {});
@@ -72,14 +73,15 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     super.dispose();
   }
 
-  Future<void> fetchCinemasByMovie() async {
+  Future<void> getCinemaByMovieIdAndCity() async {
     setState(() => isLoading = true);
     try {
+      String city = widget.selectedLocation == "Toàn quốc" ? "all" : widget.selectedLocation;
+      String encodedLocation = Uri.encodeQueryComponent(city);
+      final url = await Uri.parse('${Config.BASEURL}/api/v1/cinemas/movieandcity?movieId=${widget.movie.id}&city=$encodedLocation');
       final response = await http.get(
-        Uri.parse(
-          'http://localhost:8080/api/cinemas?movieId=${widget.movie
-              .id}&location=${widget.selectedLocation}',
-        ),
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -96,15 +98,13 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     }
   }
 
-  Future<void> fetchShowtimes(int cinemaId, DateTime date) async {
+  Future<void> getShowTimeByMovieIdAndCinemaIdAndDate(int cinemaId, DateTime date) async {
     setState(() => isLoading = true);
     try {
+      final url = await Uri.parse('${Config.BASEURL}/api/v1/showtimes?movieId=${widget.movie.id}&cinemaId=$cinemaId&date=${DateFormat('yyyy-MM-dd').format(date)}',);
       final response = await http.get(
-        Uri.parse(
-          'http://localhost:8080/api/showtimes?movieId=${widget.movie
-              .id}&cinemaId=$cinemaId&date=${DateFormat('yyyy-MM-dd').format(
-              date)}',
-        ),
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -121,10 +121,12 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     }
   }
 
-  Future<Room?> fetchRoomById(int roomId) async {
+  Future<Room?> getRoomById(int roomId) async {
     try {
+      final url = await Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId');
       final response = await http.get(
-        Uri.parse('http://localhost:8080/api/rooms/$roomId'),
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -138,11 +140,13 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     }
   }
 
-  Future<List<Seat>> fetchSeatByRoomId(int roomId) async {
+  Future<List<Seat>> getSeatByRoomId(int roomId) async {
     setState(() => isLoading = true);
     try {
+      final url = await Uri.parse('${Config.BASEURL}/api/v1/seats?roomId=$roomId');
       final response = await http.get(
-        Uri.parse('http://localhost:8080/api/seats?roomId=$roomId'),
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -604,9 +608,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                         );
                         return OutlinedButton(
                           onPressed: () async {
-                            final room = await fetchRoomById(show.roomId);
+                            final room = await getRoomById(show.roomId);
                             if(room !=null) {
-                              final seats = await fetchSeatByRoomId(show.roomId);
+                              final seats = await getSeatByRoomId(show.roomId);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -811,7 +815,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                movie.releaseDate ?? 'Không rõ',
+                                movie.releaseDate,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
