@@ -9,8 +9,11 @@ import com.project.bookingmovieticketapp.Repositories.MovieRepository;
 import com.project.bookingmovieticketapp.Responses.TMDBNowPlayingResponse;
 import com.project.bookingmovieticketapp.Responses.TMDBSimilarResponse;
 import com.project.bookingmovieticketapp.Responses.TMDBUpComingResponse;
+import com.project.bookingmovieticketapp.Services.Cast.CastService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MovieService implements IMovieService {
+    private static final Logger logger = LoggerFactory.getLogger(CastService.class);
+
     final MovieRepository movieRepository;
     final CastRepository castRepository;
 
@@ -33,6 +38,9 @@ public class MovieService implements IMovieService {
     @PostConstruct
     public void init() {
         syncMoviesFromTMDB();
+        logger.info("Starting to generate casts for movies...");
+        generateCastsForMovie();
+        logger.info("Finished generating casts for movies.");
     }
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -95,33 +103,6 @@ public class MovieService implements IMovieService {
             case "NC-17" -> "C18";
             default -> "ALL";
         };
-    }
-
-    private List<Cast> getCasts(int movieId) {
-        try {
-            String url = "https://api.themoviedb.org/3/movie/" + movieId + "/credits?api_key=" + apiKey;
-            String jsonResponse = restTemplate.getForObject(url, String.class);
-
-            if (jsonResponse == null) {
-                return Collections.emptyList();
-            }
-
-            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {
-            });
-            List<Map<String, Object>> castList = (List<Map<String, Object>>) responseMap.get("cast");
-
-            List<Cast> casts = new ArrayList<>();
-            for (Map<String, Object> cast : castList) {
-                if (casts.size() >= 5) break; // Lấy tối đa 5 diễn viên
-                Cast newCast = Cast.builder()
-                        .actorname((String) cast.get("name"))
-                        .build();
-                casts.add(newCast);
-            }
-            return casts;
-        } catch (Exception e) {
-            return Collections.emptyList();
-        }
     }
 
     private String getDirector(int movieId) {
@@ -205,12 +186,6 @@ public class MovieService implements IMovieService {
                             .director(getDirector(tmdbMovie.getId()))
                             .build();
                     movieRepository.save(newMovie);
-
-                    List<Cast> casts = getCasts(tmdbMovie.getId());
-                    for (Cast cast : casts) {
-                        cast.setMovie(newMovie); // Liên kết cast với movie
-                        castRepository.save(cast);
-                    }
                 }
             }
         }
@@ -233,17 +208,75 @@ public class MovieService implements IMovieService {
                             .director(getDirector(tmdbMovie.getId()))
                             .build();
                     movieRepository.save(newMovie);
-
-                    List<Cast> casts = getCasts(tmdbMovie.getId());
-                    for (Cast cast : casts) {
-                        cast.setMovie(newMovie); // Liên kết cast với movie
-                        castRepository.save(cast);
-                    }
                 }
             }
         }
     }
 
+    private List<Cast> getCasts(int movieId) {
+        try {
+            String url = "https://api.themoviedb.org/3/movie/" + movieId + "/credits?api_key=" + apiKey;
+            logger.debug("Fetching casts for movieId: {} from URL: {}", movieId, url);
+            String jsonResponse = restTemplate.getForObject(url, String.class);
+
+            if (jsonResponse == null) {
+                logger.warn("Received null response from TMDb API for movieId: {}", movieId);
+                return Collections.emptyList();
+            }
+
+            Map<String, Object> responseMap = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {});
+            List<Map<String, Object>> castList = (List<Map<String, Object>>) responseMap.get("cast");
+
+            if (castList == null || castList.isEmpty()) {
+                logger.warn("No cast data found for movieId: {}", movieId);
+                return Collections.emptyList();
+            }
+
+            List<Cast> casts = new ArrayList<>();
+            for (Map<String, Object> cast : castList) {
+                if (casts.size() >= 5) break; // Lấy tối đa 5 diễn viên
+                String actorName = (String) cast.get("name");
+                if (actorName == null || actorName.trim().isEmpty()) {
+                    logger.warn("Invalid actor name for movieId: {}, skipping entry: {}", movieId, cast);
+                    continue;
+                }
+                Cast newCast = Cast.builder()
+                        .actorname(actorName)
+                        .build();
+                casts.add(newCast);
+            }
+            logger.debug("Found {} casts for movieId: {}", casts.size(), movieId);
+            return casts;
+        } catch (Exception e) {
+            logger.error("Error fetching casts for movieId: {}", movieId, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private void generateCastsForMovie() {
+        List<Movie> movieList = movieRepository.findAll();
+        logger.info("Found {} movies to process", movieList.size());
+
+        for (Movie movie : movieList) {
+            logger.debug("Processing movie: {} (ID: {})", movie.getName(), movie.getId());
+            // Kiểm tra xem movie đã có cast chưa
+            List<Cast> existingCasts = castRepository.findByMovieId(movie.getId());
+            if (!existingCasts.isEmpty()) {
+                logger.debug("Movie {} (ID: {}) already has casts, skipping", movie.getName(), movie.getId());
+                continue;
+            }
+
+            List<Cast> castList = getCasts(movie.getId());
+            for (Cast cast : castList) {
+                Cast newCast = Cast.builder()
+                        .movie(movie) // Sử dụng movie trực tiếp từ movieList
+                        .actorname(cast.getActorname())
+                        .build();
+                castRepository.save(newCast);
+                logger.info("Saved cast for movie: {} (Actor: {})", movie.getName(), cast.getActorname());
+            }
+        }
+    }
 
     @Override
     public List<Movie> getNowPlaying() {
@@ -263,17 +296,9 @@ public class MovieService implements IMovieService {
                         .voteaverage(tmdbMovie.getVote_average())
                         .director(getDirector(tmdbMovie.getId()))
                         .build();
-
-                List<Cast> casts = getCasts(tmdbMovie.getId());
-                for (Cast cast : casts) {
-                    cast.setMovie(newMovie); // Liên kết cast với movie
-                    castRepository.save(cast);
-                }
-
                 nowPlayingMovieList.add(newMovie);
             }
         }
-
         return nowPlayingMovieList;
     }
 
@@ -295,17 +320,9 @@ public class MovieService implements IMovieService {
                         .voteaverage(tmdbMovie.getVote_average())
                         .director(getDirector(tmdbMovie.getId()))
                         .build();
-
-                List<Cast> casts = getCasts(tmdbMovie.getId());
-                for (Cast cast : casts) {
-                    cast.setMovie(newMovie); // Liên kết cast với movie
-                    castRepository.save(cast);
-                }
-
                 upComingMovieList.add(newMovie);
             }
         }
-
         return upComingMovieList;
     }
 

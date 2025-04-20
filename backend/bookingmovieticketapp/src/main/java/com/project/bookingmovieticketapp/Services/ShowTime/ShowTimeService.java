@@ -8,6 +8,7 @@ import com.project.bookingmovieticketapp.Repositories.CinemaRepository;
 import com.project.bookingmovieticketapp.Repositories.MovieRepository;
 import com.project.bookingmovieticketapp.Repositories.RoomRepository;
 import com.project.bookingmovieticketapp.Repositories.ShowTimeRepository;
+import com.project.bookingmovieticketapp.Responses.ShowTimeResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -113,7 +115,7 @@ public class ShowTimeService implements IShowTimeService{
     }
 
     @Override
-    public List<ShowTime> getShowTimeByMovieIdAndCinemaIdAndDate(int movieId, int cinemaId, LocalDate date) throws Exception{
+    public List<ShowTimeResponse> getShowTimeByMovieIdAndCinemaIdAndDate(int movieId, int cinemaId, LocalDate date) throws Exception{
         Cinema existingCinema = cinemaRepository.findById(cinemaId)
                 .orElseThrow(()-> new RuntimeException("Khong tim thay CinemaId"));
 
@@ -123,9 +125,24 @@ public class ShowTimeService implements IShowTimeService{
         List<Room> rooms = roomRepository.findByCinema(existingCinema);
         List<Integer> roomIds = rooms.stream().map(Room::getId).toList();
 
-        LocalDateTime start = date.atStartOfDay();
-        LocalDateTime end = date.atTime(23, 59, 59);
+        List<ShowTime> showTimeList = showTimeRepository.findByMovieAndRoomIdInAndShowdate(existingMovie, roomIds, date);
 
-        return showTimeRepository.findByMovieAndRoomIdInAndShowdateBetween(existingMovie, roomIds, start, end);
+        List<ShowTimeResponse> showTimeResponseList = new ArrayList<>();
+        for(ShowTime showTime : showTimeList)
+        {
+            ShowTimeResponse newShowTimeResponse = ShowTimeResponse
+                    .builder()
+                    .id(showTime.getId())
+                    .movieId(showTime.getMovie().getId())
+                    .roomId(showTime.getRoom().getId())
+                    .showdate(showTime.getShowdate())
+                    .starttime(showTime.getStarttime())
+                    .price(showTime.getPrice())
+                    .build();
+
+            showTimeResponseList.add(newShowTimeResponse);
+        }
+
+        return showTimeResponseList;
     }
 }

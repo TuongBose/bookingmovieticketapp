@@ -3,12 +3,14 @@ package com.project.bookingmovieticketapp.Controllers;
 import com.project.bookingmovieticketapp.Models.Cinema;
 import com.project.bookingmovieticketapp.Services.Cinema.CinemaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,12 +19,13 @@ import java.util.List;
 public class CinemaController {
     private final CinemaService cinemaService;
 
-    @GetMapping("/movieandcity")
+    @GetMapping("/movieandcityanddate")
     public ResponseEntity<List<Cinema>> getCinemaByMovieIdAndCity(
             @RequestParam int movieId,
-            @RequestParam String city) {
+            @RequestParam String city,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        return ResponseEntity.ok(cinemaService.getCinemaByMovieIdAndCity(movieId, city));
+        return ResponseEntity.ok(cinemaService.getCinemaByMovieIdAndCityAndDate(movieId, city, date));
     }
 
     @GetMapping("")

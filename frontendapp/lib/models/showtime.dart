@@ -19,8 +19,8 @@ class Showtime {
     id: json['id'],
     movieId: json['movieId'],
     roomId: json['roomId'],
-    showDate: DateTime.parse(json['showDate']),
-    startTime: DateTime.parse(json['startTime']),
+    showDate: DateTime.parse(json['showdate']),
+    startTime: DateTime.parse(json['starttime']),
     price: json['price'],
   );
 } 

@@ -8,7 +8,6 @@ class Movie {
   final String bannerUrl;
   final String ageRating;
   final double voteAverage;
-  final List<String>? casts;
   final String? director;
 
   Movie({
@@ -21,7 +20,6 @@ class Movie {
     required this.bannerUrl,
     required this.ageRating,
     required this.voteAverage,
-    this.casts,
     this.director
   });
 
@@ -36,9 +34,6 @@ class Movie {
       bannerUrl: json['bannerurl'],
       ageRating: json['agerating'],
       voteAverage: (json['voteaverage'] as num).toDouble(),
-      casts: json['casts'] != null
-          ? (json['casts'] as List).map((cast) => cast['actorname'] as String).toList()
-          : null,
       director: json['director'],
     );
   }

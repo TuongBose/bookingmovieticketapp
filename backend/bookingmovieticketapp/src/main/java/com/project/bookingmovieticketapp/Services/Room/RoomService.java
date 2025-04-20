@@ -6,10 +6,12 @@ import com.project.bookingmovieticketapp.Models.Room;
 import com.project.bookingmovieticketapp.Repositories.CinemaRepository;
 import com.project.bookingmovieticketapp.Repositories.RoomRepository;
 import com.project.bookingmovieticketapp.Repositories.SeatRepository;
+import com.project.bookingmovieticketapp.Responses.RoomResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.List;
 import java.util.Random;
@@ -21,19 +23,18 @@ public class RoomService implements IRoomService {
     private final RoomRepository roomRepository;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         generateRoomsForAllCinemas();
     }
 
-    private void generateRoomsForAllCinemas(){
+    private void generateRoomsForAllCinemas() {
         List<Cinema> cinemaList = cinemaRepository.findAll();
-        for(Cinema cinema : cinemaList)
-        {
+        for (Cinema cinema : cinemaList) {
             generateRoomsForCinema(cinema);
         }
     }
 
-    private void generateRoomsForCinema(Cinema cinema){
+    private void generateRoomsForCinema(Cinema cinema) {
         int maxRooms = cinema.getMaxroom();
 
         // Kiểm tra xem rạp đã có phòng chưa
@@ -74,7 +75,7 @@ public class RoomService implements IRoomService {
     @Override
     public Room createRoom(RoomDTO roomDTO) {
         Cinema existingCinema = cinemaRepository.findById(roomDTO.getCinemaid())
-                .orElseThrow(()->new RuntimeException("Khong tim thay CinemaId"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay CinemaId"));
 
         Room newRoom = Room
                 .builder()
@@ -88,18 +89,27 @@ public class RoomService implements IRoomService {
     }
 
     @Override
-    public Room getRoomById(int id) throws Exception {
-        return roomRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Khong tim thay RoomId"));
+    public RoomResponse getRoomById(int id) throws Exception {
+        Room existingRoom = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay RoomId"));
+
+        return RoomResponse
+                .builder()
+                .id(existingRoom.getId())
+                .cinemaId(existingRoom.getCinema().getId())
+                .name(existingRoom.getName())
+                .seatcolumnmax(existingRoom.getSeatcolumnmax())
+                .seatrowmax(existingRoom.getSeatrowmax())
+                .build();
     }
 
     @Override
     public Room updateRoom(int id, RoomDTO roomDTO) throws Exception {
         Room existingRoom = roomRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Khong tim thay RoomId"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay RoomId"));
 
         Cinema existingCinema = cinemaRepository.findById(roomDTO.getCinemaid())
-                .orElseThrow(()->new RuntimeException("Khong tim thay CinemaId"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay CinemaId"));
 
         existingRoom.setCinema(existingCinema);
         existingRoom.setName(roomDTO.getName());
@@ -111,9 +121,24 @@ public class RoomService implements IRoomService {
     }
 
     @Override
-    public List<Room> getRoomByCinemaId(int cinemaId) throws Exception {
+    public List<RoomResponse> getRoomByCinemaId(int cinemaId) throws Exception {
         Cinema existingCinema = cinemaRepository.findById(cinemaId)
-                .orElseThrow(()-> new RuntimeException("Khong tim thay CinemaId"));
-        return roomRepository.findByCinema(existingCinema);
+                .orElseThrow(() -> new RuntimeException("Khong tim thay CinemaId"));
+        List<Room> roomList = roomRepository.findByCinema(existingCinema);
+
+        List<RoomResponse> roomResponseList = new ArrayList<>();
+        for (Room room : roomList) {
+            RoomResponse newRoomResponse = RoomResponse
+                    .builder()
+                    .id(room.getId())
+                    .cinemaId(room.getCinema().getId())
+                    .name(room.getName())
+                    .seatcolumnmax(room.getSeatcolumnmax())
+                    .seatrowmax(room.getSeatrowmax())
+                    .build();
+            roomResponseList.add(newRoomResponse);
+        }
+
+        return roomResponseList;
     }
 }

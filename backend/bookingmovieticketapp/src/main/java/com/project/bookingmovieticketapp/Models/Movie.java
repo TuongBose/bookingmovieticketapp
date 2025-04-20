@@ -35,7 +35,4 @@ public class Movie {
     private Double voteaverage;
 
     private String director;
-
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Cast> casts;
 }

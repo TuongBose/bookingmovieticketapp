@@ -1,6 +1,7 @@
 package com.project.bookingmovieticketapp.Controllers;
 
 import com.project.bookingmovieticketapp.Models.ShowTime;
+import com.project.bookingmovieticketapp.Responses.ShowTimeResponse;
 import com.project.bookingmovieticketapp.Services.ShowTime.ShowTimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,8 +26,8 @@ public class ShowTimeController {
             @RequestParam int cinemaId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
-            List<ShowTime> showTimeList = showTimeService.getShowTimeByMovieIdAndCinemaIdAndDate(movieId, cinemaId, date);
-            return ResponseEntity.ok(showTimeList);
+            List<ShowTimeResponse> showTimeResponseList = showTimeService.getShowTimeByMovieIdAndCinemaIdAndDate(movieId, cinemaId, date);
+            return ResponseEntity.ok(showTimeResponseList);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

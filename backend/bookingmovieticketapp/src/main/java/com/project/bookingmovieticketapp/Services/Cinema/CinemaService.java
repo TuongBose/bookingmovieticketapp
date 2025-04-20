@@ -2,23 +2,28 @@ package com.project.bookingmovieticketapp.Services.Cinema;
 
 import com.project.bookingmovieticketapp.DTOs.CinemaDTO;
 import com.project.bookingmovieticketapp.Models.Cinema;
+import com.project.bookingmovieticketapp.Models.Movie;
 import com.project.bookingmovieticketapp.Models.Room;
 import com.project.bookingmovieticketapp.Models.ShowTime;
 import com.project.bookingmovieticketapp.Repositories.CinemaRepository;
+import com.project.bookingmovieticketapp.Repositories.MovieRepository;
 import com.project.bookingmovieticketapp.Repositories.RoomRepository;
 import com.project.bookingmovieticketapp.Repositories.ShowTimeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CinemaService implements ICinemaService{
+public class CinemaService implements ICinemaService {
     private final CinemaRepository cinemaRepository;
     private final ShowTimeRepository showTimeRepository;
     private final RoomRepository roomRepository;
+    private final MovieRepository movieRepository;
 
     @Override
     public Cinema createCinema(CinemaDTO cinemaDTO) {
@@ -35,9 +40,9 @@ public class CinemaService implements ICinemaService{
     }
 
     @Override
-    public Cinema updateCinema(int id, CinemaDTO cinemaDTO) throws Exception{
+    public Cinema updateCinema(int id, CinemaDTO cinemaDTO) throws Exception {
         Cinema existingCinema = cinemaRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("Khong tim thay CinemaId"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay CinemaId"));
 
         existingCinema.setName(cinemaDTO.getName());
         existingCinema.setCity(cinemaDTO.getCity());
@@ -55,39 +60,28 @@ public class CinemaService implements ICinemaService{
 
     // Lấy rạp chiếu phim (Cinemas) hiện đang chiếu phim (ByMovie) dựa vào lựa chọn thành phố (city)
     @Override
-    public List<Cinema> getCinemaByMovieIdAndCity(int movieId, String city) {
-        // Lấy CinemaIds dựa vào thành phố (city)
-        List<Cinema> filteredCinemas = (city.equals("all"))
+    public List<Cinema> getCinemaByMovieIdAndCityAndDate(int movieId, String city, LocalDate date) {
+        // Tìm movie
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay MovieId"));
+
+        // Lấy tất cả rạp theo city (nếu city là "all" thì lấy tất cả)
+        List<Cinema> cinemas = city.equals("all")
                 ? cinemaRepository.findAll()
                 : cinemaRepository.findByCity(city);
 
-        // Trường hợp không có rạp
-        if(filteredCinemas.isEmpty()) return Collections.emptyList();
+        // Lọc rạp có suất chiếu vào ngày date
+        List<Cinema> filteredCinemas = new ArrayList<>();
+        for (Cinema cinema : cinemas) {
+            List<Room> rooms = roomRepository.findByCinema(cinema);
+            List<Integer> roomIds = rooms.stream().map(Room::getId).toList();
 
-        List<Integer> cinemaIds = filteredCinemas.stream()
-                .map(Cinema::getId)
-                .toList();
-
-        // Lấy id tất cả các phòng(roomIds) của tất cả các Cinema
-        List<Room> rooms = roomRepository.findByCinemaIdIn(cinemaIds);
-        if(rooms.isEmpty()) return Collections.emptyList();
-        List<Integer> roomIds = rooms.stream().map(Room::getId).toList();
-
-        // Lấy tất cả các suất chiếu (showTimeIds) của phòng dựa vào (roomIds) ==> showtimeRoomIds
-        List<ShowTime> showTimes = showTimeRepository.findByMovieIdAndRoomIdIn(movieId, roomIds);
-        if(showTimes.isEmpty())return Collections.emptyList();
-        List<Integer> showTimeRoomIds = showTimes.stream().map(showTime -> showTime.getRoom().getId()).toList();
-
-        // Danh sách id của Cinema chiếu phim đó ở thành phố đó
-        List<Integer> finalCinemaIds = rooms.stream()
-                .filter(room -> showTimeRoomIds.contains(room.getId()))
-                .map(room -> room.getCinema().getId())
-                .distinct()
-                .toList();
-
-        return filteredCinemas.stream()
-                .filter(cinema -> finalCinemaIds.contains(cinema.getId()))
-                .toList();
+            // Tìm showtimes theo movie, roomIds và date
+            List<ShowTime> showTimes = showTimeRepository.findByMovieAndRoomIdInAndShowdate(movie, roomIds, date);
+            if (!showTimes.isEmpty()) {
+                filteredCinemas.add(cinema);
+            }
+        }
+        return filteredCinemas;
     }
-
 }

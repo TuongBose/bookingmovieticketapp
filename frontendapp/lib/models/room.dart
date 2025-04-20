@@ -17,7 +17,7 @@ class Room {
     id: json['id'],
     cinemaId: json['cinemaId'],
     name: json['name'],
-    seatColumnMax: json['seatColumnMax'],
-    seatRowMax: json['seatRowMax'],
+    seatColumnMax: json['seatcolumnmax'],
+    seatRowMax: json['seatrowmax'],
   );
 }
