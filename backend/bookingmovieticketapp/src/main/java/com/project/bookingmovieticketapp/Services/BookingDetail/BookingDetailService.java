@@ -7,9 +7,11 @@ import com.project.bookingmovieticketapp.Models.Seat;
 import com.project.bookingmovieticketapp.Repositories.BookingDetailRepository;
 import com.project.bookingmovieticketapp.Repositories.BookingRepository;
 import com.project.bookingmovieticketapp.Repositories.SeatRepository;
+import com.project.bookingmovieticketapp.Responses.BookingDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -62,9 +64,25 @@ bookingDetailRepository.save(existingBookingDetail);
     }
 
     @Override
-    public List<BookingDetail> getBookingDetailByBookingId(int bookingId) throws Exception {
+    public List<BookingDetailResponse> getBookingDetailByBookingId(int bookingId) throws Exception {
         Booking existingBooking = bookingRepository.findById(bookingId)
                 .orElseThrow(()-> new RuntimeException("Khong tim thay BookingId"));
-        return bookingDetailRepository.findByBookingId(existingBooking);
+        List<BookingDetail> bookingDetailList = bookingDetailRepository.findByBookingId(existingBooking.getId());
+        if(bookingDetailList.isEmpty())
+            throw new RuntimeException("Khong co danh sach");
+
+        List<BookingDetailResponse> bookingDetailResponseList = new ArrayList<>();
+        for(BookingDetail bookingDetail: bookingDetailList)
+        {
+            BookingDetailResponse newBookingDetailResponse = BookingDetailResponse
+                    .builder()
+                    .id(bookingDetail.getId())
+                    .bookingId(bookingDetail.getBooking().getId())
+                    .seatId(bookingDetail.getSeat().getId())
+                    .price(bookingDetail.getPrice())
+                    .build();
+            bookingDetailResponseList.add(newBookingDetailResponse);
+        }
+        return bookingDetailResponseList;
     }
 }

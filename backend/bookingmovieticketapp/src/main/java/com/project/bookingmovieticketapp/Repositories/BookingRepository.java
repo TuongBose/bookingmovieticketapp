@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
     List<Booking> findByUserId(User userId);
-    List<Booking> findByShowTimeId(ShowTime showTime);
+    List<Booking> findByShowTimeId(int showTimeId);
 }

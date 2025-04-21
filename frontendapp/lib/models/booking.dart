@@ -22,11 +22,11 @@ class Booking {
   factory Booking.fromJson(Map<String, dynamic> json) => Booking(
     id: json['id'],
     userId: json['userId'],
-    showtimeId: json['showtimeId'],
-    bookingDate: json['bookingDate'],
-    totalPrice: json['totalPrice'].toDouble(),
-    paymentMethod: json['paymentMethod'],
-    paymentStatus: json['paymentStatus'],
-    isActive: json['isActive'] == 1,
+    showtimeId: json['showTimeId'],
+    bookingDate: json['bookingdate'],
+    totalPrice: json['totalprice'].toDouble(),
+    paymentMethod: json['paymentmethod'],
+    paymentStatus: json['paymentstatus'],
+    isActive: json['isactive'],
   );
 }

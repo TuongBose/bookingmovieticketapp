@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontendapp/screens/payment_screen.dart';
+import 'package:frontendapp/services/BookingDetailService.dart';
 import '../models/cinema.dart';
 import '../models/movie.dart';
 import '../models/showtime.dart';
@@ -46,6 +47,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   final double _labelWidth = 20.0;
   final double _labelSeatSpacing = 5.0;
   final double _seatPadding = 2.0;
+  bool _isLoading = false;
 
   Future<void> _loadBookedSeats() async {
     setState(() {
@@ -54,13 +56,14 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
     try {
       BookingService bookingService = BookingService();
+      BookingDetailService bookingDetailService = BookingDetailService();
       // Lấy danh sách booking cho suất chiếu hiện tại
       final bookingsForShowtime = await bookingService.getBookingsByShowtimeId(_selectedShowtime.id);
 
       // Lấy danh sách seatId đã đặt từ booking details
       final bookedSeatIds = <int>{};
       for (var booking in bookingsForShowtime) {
-        final details = await bookingService.getBookingDetailsByBookingId(booking.id);
+        final details = await bookingDetailService.getBookingDetailsByBookingId(booking.id);
         bookedSeatIds.addAll(details.map((detail) => detail.seatId));
       }
 
@@ -72,30 +75,50 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       setState(() {
         _isLoadingBookedSeats = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi tải ghế đã đặt: $e')),
-      );
     }
   }
 
   Future<void> _updateRoomAndSeats(int roomId) async {
+    // Không cần setState bật isLoading ở đây nữa
+
+    Room? fetchedRoom; // Sử dụng biến tạm, kiểu nullable
+    List<Seat>? fetchedSeats;
+    bool fetchSuccess = false; // Cờ để kiểm tra tải thành công
+
     try {
       RoomService roomService = RoomService();
-      // Lấy thông tin phòng mới
-      final room = await roomService.getRoomById(roomId);
-      // Lấy danh sách ghế mới
-      final seats = await roomService.getSeatsByRoomId(roomId);
+      // Tải thông tin phòng và ghế mới
+      // Có thể dùng Future.wait nếu muốn tải song song
+      fetchedRoom = await roomService.getRoomById(roomId);
+      fetchedSeats = await roomService.getSeatsByRoomId(roomId);
 
-      setState(() {
-        _selectedRoom = room;
-        _allSeats = seats;
-        _selectedSeats.clear();
-        _loadBookedSeats();
-      });
+      // Tải thông tin ghế đã đặt cho suất chiếu MỚI (_selectedShowtime đã được cập nhật)
+      // Hàm này sẽ tự cập nhật _bookedSeatIdsForShowtime qua setState riêng của nó
+      await _loadBookedSeats();
+      fetchSuccess = true; // Đánh dấu tải thành công
+
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi cập nhật phòng và ghế: $e')),
-      );
+      fetchSuccess = false; // Đánh dấu tải thất bại
+      if (mounted) { // Luôn kiểm tra mounted trước khi dùng context trong async gap
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi cập nhật phòng và ghế: $e')),
+        );
+      }
+    } finally {
+      // Chỉ gọi setState một lần ở cuối để cập nhật UI cuối cùng
+      if (mounted) {
+        setState(() {
+          if (fetchSuccess && fetchedRoom != null && fetchedSeats != null) {
+            // Cập nhật state chính ở đây
+            _selectedRoom = fetchedRoom;
+            _allSeats = fetchedSeats;
+            // _selectedSeats đã được clear() trong onChanged
+            // _bookedSeatIdsForShowtime đã được cập nhật bởi _loadBookedSeats
+          }
+          // Luôn tắt loading indicator dù thành công hay thất bại
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -131,7 +154,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         foregroundColor: Colors.black,
       ),
       backgroundColor: Colors.white,
-      body: _isLoadingBookedSeats
+      body: _isLoading || _isLoadingBookedSeats
           ? const Center(child: CircularProgressIndicator())
           : Column(
         children: [
@@ -162,11 +185,16 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 // DropdownButton để chọn suất chiếu
                 DropdownButton<Showtime>(
                   value: _selectedShowtime,
-                  onChanged: (Showtime? newShowtime)async {
-                    if (newShowtime != null) {
+                  onChanged: (Showtime? newShowtime) async {
+                    // Chỉ xử lý nếu chọn suất chiếu khác suất chiếu hiện tại
+                    if (newShowtime != null && newShowtime.id != _selectedShowtime.id) {
                       setState(() {
-                        _selectedShowtime = newShowtime;
+                        _selectedShowtime = newShowtime; // Cập nhật suất chiếu được chọn
+                        _isLoading = true;             // Bật loading chính
+                        _selectedSeats.clear();        // Xóa ghế đang chọn
+                        _bookedSeatIdsForShowtime.clear(); // Xóa ghế đã đặt cũ (tránh hiển thị sai tạm thời)
                       });
+                      // Gọi hàm để tải dữ liệu mới cho phòng và ghế
                       await _updateRoomAndSeats(newShowtime.roomId);
                     }
                   },

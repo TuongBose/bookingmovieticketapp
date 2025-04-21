@@ -4,6 +4,7 @@ import com.project.bookingmovieticketapp.Models.Booking;
 import com.project.bookingmovieticketapp.Models.BookingDetail;
 import com.project.bookingmovieticketapp.Services.Booking.BookingService;
 import com.project.bookingmovieticketapp.Services.BookingDetail.BookingDetailService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,24 +19,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
-    private final BookingDetailService bookingDetailService;
 
     @GetMapping("/showtimes/{showtimeId}/bookings")
-    public ResponseEntity<?> getBookingsByShowtimeId(@PathVariable int showtimeId) {
+    public ResponseEntity<?> getBookingsByShowtimeId(@Valid @PathVariable int showtimeId) {
         try {
             return ResponseEntity.ok(bookingService.getBookingByShowTimeId(showtimeId));
         }
         catch (Exception e)
-        {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @GetMapping("/{bookingId}/details")
-    public ResponseEntity<?> getBookingDetailsByBookingId(@PathVariable int bookingId) {
-        try {
-            return ResponseEntity.ok(bookingDetailService.getBookingDetailByBookingId(bookingId));
-        }catch (Exception e)
         {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

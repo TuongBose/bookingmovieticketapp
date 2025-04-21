@@ -151,3 +151,28 @@ SELECT * FROM bookingdetails;
 SELECT * FROM payments;
 SELECT * FROM ratings;
 SELECT * FROM movienews;
+
+INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, createdat, isactive, rolename)
+VALUES 
+('Nguyen Van A', 'nguyenvana@example.com', 'password123', '0905123456', '123 Đường Láng, Hà Nội', '1990-05-15', '2025-04-21 14:30:00', 1, 0),
+('Tran Thi B', 'tranthib@example.com', 'securepass456', '0987654321', '456 Nguyễn Huệ, TP.HCM', '1995-08-20', '2025-04-21 15:00:00', 1, 1);
+
+INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
+VALUES 
+(1, 1, '2025-04-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 1),
+(2, 2, '2025-04-21 11:00:00', 200000, 'CASH', 'PENDING', 1);
+
+INSERT INTO bookingdetails (bookingid, seatid, price)
+VALUES 
+(1, 1, 75000),
+(1, 2, 75000),
+(2, 3, 100000),
+(2, 4, 100000);
+
+INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
+VALUES 
+(1, 147, '2025-04-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 1);
+
+INSERT INTO bookingdetails (bookingid, seatid, price)
+VALUES 
+(4, 4704, 75000);

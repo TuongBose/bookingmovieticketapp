@@ -12,6 +12,6 @@ class Seat {
   factory Seat.fromJson(Map<String, dynamic> json) => Seat(
     id: json['id'],
     roomId: json['roomId'],
-    seatNumber: json['seatNumber'],
+    seatNumber: json['seatnumber'],
   );
 }

@@ -2,15 +2,18 @@ package com.project.bookingmovieticketapp.Services.Booking;
 
 import com.project.bookingmovieticketapp.DTOs.BookingDTO;
 import com.project.bookingmovieticketapp.Models.Booking;
+import com.project.bookingmovieticketapp.Models.BookingDetail;
 import com.project.bookingmovieticketapp.Models.ShowTime;
 import com.project.bookingmovieticketapp.Models.User;
 import com.project.bookingmovieticketapp.Repositories.BookingRepository;
 import com.project.bookingmovieticketapp.Repositories.ShowTimeRepository;
 import com.project.bookingmovieticketapp.Repositories.UserRepository;
+import com.project.bookingmovieticketapp.Responses.BookingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -43,11 +46,31 @@ public class BookingService implements IBookingService {
     }
 
     @Override
-    public List<Booking> getBookingByShowTimeId(int id) throws Exception {
+    public List<BookingResponse> getBookingByShowTimeId(int id) throws Exception {
         ShowTime existingShowTime = showTimeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay ShowTimeId"));
 
-        return bookingRepository.findByShowTimeId(existingShowTime);
+        List<Booking> bookingList = bookingRepository.findByShowTimeId(existingShowTime.getId());
+        if(bookingList.isEmpty())
+            throw new RuntimeException("Khong co danh sach");
+
+        List<BookingResponse> bookingResponseList = new ArrayList<>();
+        for(Booking booking:bookingList)
+        {
+            BookingResponse newBookingResponse = BookingResponse
+                    .builder()
+                    .id(booking.getId())
+                    .userId(booking.getUser().getId())
+                    .showTimeId(booking.getShowTime().getId())
+                    .bookingdate(booking.getBookingdate())
+                    .totalprice(booking.getTotalprice())
+                    .paymentmethod(booking.getPaymentmethod())
+                    .paymentstatus(booking.getPaymentstatus())
+                    .isactive(booking.isIsactive())
+                    .build();
+            bookingResponseList.add(newBookingResponse);
+        }
+        return bookingResponseList;
     }
 
     @Override

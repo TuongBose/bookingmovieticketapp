@@ -5,10 +5,12 @@ import com.project.bookingmovieticketapp.Models.Room;
 import com.project.bookingmovieticketapp.Models.Seat;
 import com.project.bookingmovieticketapp.Repositories.RoomRepository;
 import com.project.bookingmovieticketapp.Repositories.SeatRepository;
+import com.project.bookingmovieticketapp.Responses.SeatResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -105,10 +107,27 @@ public class SeatService implements ISeatService{
     }
 
     @Override
-    public List<Seat> getSeatByRoomId(int roomId) throws Exception {
+    public List<SeatResponse> getSeatByRoomId(int roomId) throws Exception {
         Room existingRoom = roomRepository.findById(roomId)
                 .orElseThrow(()-> new RuntimeException("Khong tim thay RoomId"));
 
-        return seatRepository.findByRoom(existingRoom);
+        List<Seat> seatList = seatRepository.findByRoom(existingRoom);
+        if(seatList.isEmpty())
+            throw new RuntimeException("Khong co danh sach");
+        else
+        {
+            List<SeatResponse> seatResponseList = new ArrayList<>();
+            for(Seat seat:seatList)
+            {
+                SeatResponse newSeatResponse = SeatResponse
+                        .builder()
+                        .id(seat.getId())
+                        .roomId(seat.getRoom().getId())
+                        .seatnumber(seat.getSeatnumber())
+                        .build();
+                seatResponseList.add(newSeatResponse);
+            }
+            return seatResponseList;
+        }
     }
 }
