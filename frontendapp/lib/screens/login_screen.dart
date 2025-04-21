@@ -57,7 +57,6 @@ class DangNhapScreen extends StatelessWidget {
                       'Quên mật khẩu?',
                       style: TextStyle(
                         color: Colors.blue,
-                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
@@ -77,7 +76,7 @@ class DangNhapScreen extends StatelessWidget {
           const Spacer(),
           const Divider(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

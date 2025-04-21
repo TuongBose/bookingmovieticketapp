@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../dtos/BookingDTO.dart';
+import '../dtos/BookingDetailDTO.dart';
 import '../models/cinema.dart';
 import '../models/movie.dart';
 import '../models/room.dart';
+import '../models/seat.dart';
+import '../services/BookingService.dart';
+import '../services/BookingDetailService.dart';
 
 class PaymentScreen extends StatefulWidget {
   final Movie movie;
   final Cinema cinema;
   final Room room;
   final DateTime showTime;
+  final int showTimeId; // Thêm showtimeId
   final List<String> selectedSeats;
+  final List<Seat> selectedSeatsWithId; // Thêm danh sách ghế đầy đủ
   final int totalPrice;
 
   const PaymentScreen({
@@ -18,7 +25,9 @@ class PaymentScreen extends StatefulWidget {
     required this.cinema,
     required this.room,
     required this.showTime,
+    required this.showTimeId,
     required this.selectedSeats,
+    required this.selectedSeatsWithId,
     required this.totalPrice,
   });
 
@@ -29,6 +38,66 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   String? _selectedPaymentMethod;
   int _starsDiscount = 0;
+  bool _isLoading = false;
+
+  Future<void> _processPayment() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // 1. Tạo Booking
+      final bookingService = BookingService();
+      final bookingDTO = BookingDTO(
+        userId: 1, // Giả định userId, bạn cần lấy từ thông tin người dùng đăng nhập
+        showtimeId: widget.showTimeId,
+        totalPrice:widget.totalPrice - _starsDiscount.toDouble(),
+        paymentMethod: _selectedPaymentMethod!,
+        paymentStatus: 'COMPLETED',
+      );
+
+      final bookingId = await bookingService.createBooking(bookingDTO);
+      print('Created booking with ID: $bookingId');
+
+      // 2. Tạo BookingDetail cho từng ghế được chọn
+      final bookingDetailService = BookingDetailService();
+      final pricePerSeat = (widget.totalPrice - _starsDiscount) ~/ widget.selectedSeats.length;
+
+      for (var seat in widget.selectedSeatsWithId) {
+        final bookingDetailDTO = BookingDetailDTO(
+          bookingId: bookingId,
+          seatId: seat.id,
+          price: pricePerSeat,
+        );
+        await bookingDetailService.createBookingDetail(bookingDetailDTO);
+        print('Created booking detail for seat ${seat.seatNumber}');
+      }
+
+      // 3. Hiển thị thông báo thành công và quay về màn hình chính
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Thanh toán thành công với ${_selectedPaymentMethod}!'),
+          ),
+        );
+        Navigator.popUntil(context, ModalRoute.withName('/'));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi thanh toán: $e'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +118,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
@@ -125,7 +196,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                     "HH:mm - EEEE, dd/MM/yyyy",
                                     'vi_VN',
                                   ).format(widget.showTime),
-                                  style: const TextStyle(color: Colors.red,fontSize: 15, fontWeight:FontWeight.bold),
+                                  style: const TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -215,10 +289,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                     const SizedBox(width: 8),
-                                    // Khoảng cách giữa text và icon
                                     Icon(
                                       Icons.local_offer,
-                                      // Icon phù hợp với khuyến mãi
                                       color: Colors.grey,
                                       size: 20,
                                     ),
@@ -244,8 +316,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 ],
                               ),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     formatter.format(widget.totalPrice),
@@ -285,18 +356,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                              _buildPaymentMethodOption(
-                                'OnePay - Visa, Master, JCB,... / ATM / QR Ngân hàng / Apple Pay',
-                                'onepay',
-                                icon: const Icon(Icons.credit_card),
-                              ),
+                          _buildPaymentMethodOption(
+                            'OnePay - Visa, Master, JCB,... / ATM / QR Ngân hàng / Apple Pay',
+                            'onepay',
+                            icon: const Icon(Icons.credit_card),
+                          ),
                           _buildPaymentMethodOption(
                             'Ví Momo',
                             'momo',
-                            icon:Image.asset('assets/images/momo_icon.png',width: 30,
-                              height: 30,),
+                            icon: Image.asset(
+                              'assets/images/momo_icon.png',
+                              width: 30,
+                              height: 30,
+                            ),
                           ),
-                            ],
+                        ],
                       ),
                     ),
                   ),
@@ -318,22 +392,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed:
-                      _selectedPaymentMethod == null
-                          ? null
-                          : () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Thanh toán thành công với ${_selectedPaymentMethod}!',
-                                ),
-                              ),
-                            );
-                            Navigator.popUntil(
-                              context,
-                              ModalRoute.withName('/'),
-                            );
-                          },
+                  onPressed: _selectedPaymentMethod == null
+                      ? null
+                      : _processPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                     foregroundColor: Colors.white,

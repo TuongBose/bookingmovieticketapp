@@ -3,7 +3,28 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 import 'package:frontendapp/models/bookingdetail.dart';
 
+import '../dtos/BookingDetailDTO.dart';
+
 class BookingDetailService{
+  Future<void> createBookingDetail(BookingDetailDTO bookingDetailDTO) async {
+    try {
+      final url = Uri.parse('${Config.BASEURL}/api/v1/bookingdetails');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(bookingDetailDTO.toJson()),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to create booking detail: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error creating booking detail: $e');
+    }
+  }
+
   Future<List<BookingDetail>> getBookingDetailsByBookingId(int bookingId) async {
     final url = Uri.parse('${Config.BASEURL}/api/v1/bookingdetails/$bookingId/details');
     try {

@@ -31,7 +31,6 @@ public class User {
     @Column(name = "phonenumber", nullable = false)
     private String phonenumber;
 
-    @Column(name = "address", nullable = false)
     private String address;
 
     @Column(name = "dateofbirth", nullable = false)

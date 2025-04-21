@@ -1,6 +1,8 @@
 package com.project.bookingmovieticketapp.DTOs;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.Date;
@@ -12,15 +14,22 @@ import java.util.Date;
 @Getter
 @Setter
 public class UserDTO {
+    @NotBlank(message = "Họ và tên không được bỏ trống")
     private String name;
+
+    @NotBlank(message = "Email không được bỏ trống")
     private String email;
 
-    @NotBlank(message = "Password khong duoc bo trong")
+    @NotBlank(message = "Password không được bỏ trống")
     private String password;
+
+    @NotBlank(message = "Xác nhận mật khẩu không khớp")
     private String retypepassword;
 
-    @NotBlank(message = "So dien thoai khong duoc bo trong")
+    @NotBlank(message = "Số điện thoại không được bỏ trống")
     private String phonenumber;
-    private String address;
+
+    @NotNull(message = "Ngày sinh không được bỏ trống")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private Date dateofbirth;
 }

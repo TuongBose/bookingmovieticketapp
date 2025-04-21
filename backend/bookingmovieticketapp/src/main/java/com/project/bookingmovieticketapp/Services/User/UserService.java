@@ -23,7 +23,6 @@ public class UserService implements IUserService {
                 .builder()
                 .name(userDTO.getName())
                 .email(userDTO.getEmail())
-                .address(userDTO.getAddress())
                 .password(userDTO.getPassword())
                 .phonenumber(userDTO.getPhonenumber())
                 .dateofbirth(userDTO.getDateofbirth())
@@ -40,7 +39,7 @@ public class UserService implements IUserService {
             throw new RuntimeException("Sai so dien thoai hoac password");
 
         User existingUser = userOptional.get();
-        if (existingUser.getPassword().equals(password)) {
+        if (!existingUser.getPassword().equals(password)) {
             throw new RuntimeException("Sai so dien thoai hoac password");
         }
 

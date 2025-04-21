@@ -375,12 +375,14 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: _selectedSeats.isEmpty
-                        ? null
-                        : () {
+                    onPressed: _selectedSeats.isEmpty ? null : () {
                       // Tính tổng tiền (giả sử giá vé lấy từ showtime.price)
-                      final totalPrice = _selectedShowtime.price *
-                          _selectedSeats.length;
+                      final totalPrice = _selectedShowtime.price * _selectedSeats.length;
+
+                      // Lấy danh sách ghế đầy đủ (bao gồm seatId) từ _allSeats
+                      final selectedSeatsWithId = _allSeats
+                          .where((seat) => _selectedSeats.contains(seat.seatNumber),)
+                          .toList();
 
                       // Điều hướng đến PaymentScreen
                       Navigator.push(
@@ -391,7 +393,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                             cinema: widget.cinema,
                             room: _selectedRoom, // Sử dụng _selectedRoom
                             showTime: _selectedShowtime.startTime,
+                            showTimeId: _selectedShowtime.id,
                             selectedSeats: _selectedSeats,
+                            selectedSeatsWithId: selectedSeatsWithId,
                             totalPrice: totalPrice,
                           ),
                         ),
