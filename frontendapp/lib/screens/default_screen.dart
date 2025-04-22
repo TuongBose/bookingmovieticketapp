@@ -1,3 +1,7 @@
+import 'package:frontendapp/screens/login_screen.dart';
+import 'package:frontendapp/screens/user_screen.dart';
+
+import '../config.dart';
 import '../screens/cinema_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +14,7 @@ class DefaultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: "Home Screen Default",
-      debugShowCheckedModeBanner: false,
-      home: MyDefaultScreen(),
-    );
+    return const MyDefaultScreen();
   }
 }
 
@@ -31,12 +31,6 @@ class MyDefaultScreenState extends State<MyDefaultScreen> {
     fontSize: 30,
     fontWeight: FontWeight.bold,
   );
-  static final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    CinemaScreen(),
-    MovieNewsScreen(),
-    const AccountScreen()
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -46,38 +40,47 @@ class MyDefaultScreenState extends State<MyDefaultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> widgetOptions = <Widget>[
+      HomeScreen(),
+      CinemaScreen(),
+      MovieNewsScreen(),
+      Config.isLogin ? UserScreen() : AccountScreen(),
+    ];
     return Scaffold(
+      // Sử dụng IndexedStack để giữ trạng thái của các màn hình trong tab
       body: IndexedStack(
         index: _selectedIndex,
-        children: _widgetOptions,
+        children: widgetOptions, // Sử dụng danh sách đã cập nhật
       ),
       bottomNavigationBar: BottomNavigationBar(
+        // QUAN TRỌNG: Đặt type thành fixed để các mục luôn hiển thị label
+        // và màu nền hoạt động đúng (nếu cần set màu nền)
+        type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Trang chủ',
-            backgroundColor: Colors.white,
+            // backgroundColor: Colors.white, // Không cần khi type=fixed trừ khi muốn màu khác
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.business_sharp),
             label: 'Rạp phim',
-            backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.newspaper),
             label: 'Điện ảnh',
-            backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle_outlined),
             label: 'Tài khoản',
-            backgroundColor: Colors.white,
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.blueAccent, // Màu khi mục được chọn
+        unselectedItemColor: Colors.grey, // Màu khi mục không được chọn
         onTap: _onItemTapped,
+        // backgroundColor: Colors.white, // Có thể đặt màu nền chung ở đây
+        showUnselectedLabels: true, // Đảm bảo label luôn hiển thị
       ),
     );
   }

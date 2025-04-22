@@ -12,6 +12,7 @@ import com.project.bookingmovieticketapp.Responses.BookingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +84,7 @@ public class BookingService implements IBookingService {
     public List<Booking> getBookingByUserId(int id) throws Exception {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay UserId"));
-        return bookingRepository.findByUserId(existingUser);
+        return bookingRepository.findByUserId(existingUser.getId());
     }
 
     @Override
@@ -113,5 +114,22 @@ public class BookingService implements IBookingService {
                 .orElseThrow(()->new RuntimeException("Khong tim thay BookingId"));
         existingBooking.setIsactive(false);
         bookingRepository.save(existingBooking);
+    }
+
+    @Override
+    public int sumTotalPriceByUserId(int userId) throws Exception {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(()->new RuntimeException("Khong tim thay UserId"));
+
+        List<Booking> bookingList = bookingRepository.findByUserId(existingUser.getId());
+        if(!bookingList.isEmpty()) {
+            int sum = 0;
+            for (Booking booking:bookingList) {
+                if(booking.getBookingdate().getYear() == LocalDate.now().getYear())
+                    sum = sum + booking.getTotalprice();
+            }
+            return sum;
+        }
+        return 0;
     }
 }

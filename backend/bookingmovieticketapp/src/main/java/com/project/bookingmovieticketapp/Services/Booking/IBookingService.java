@@ -13,4 +13,5 @@ public interface IBookingService {
     Booking getBookingById(int id) throws Exception;
     Booking updateBooking(int id, BookingDTO bookingDTO) throws Exception;
     void deleteBooking(int id) throws Exception;
+    int sumTotalPriceByUserId(int userId) throws Exception;
 }

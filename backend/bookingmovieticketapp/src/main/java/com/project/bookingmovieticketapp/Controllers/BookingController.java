@@ -39,6 +39,15 @@ public class BookingController {
         }
     }
 
+    @GetMapping("/users/{id}/totalprice")
+    public ResponseEntity<?> sumTotalPriceByUserId(@Valid @PathVariable int id) {
+        try {
+            return ResponseEntity.ok(bookingService.sumTotalPriceByUserId(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/showtimes/{showtimeId}/bookings")
     public ResponseEntity<?> getBookingsByShowtimeId(@Valid @PathVariable int showtimeId) {
         try {

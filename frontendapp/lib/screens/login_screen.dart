@@ -1,8 +1,88 @@
 import 'package:flutter/material.dart';
-import 'reset_password_screen.dart';
+import 'package:frontendapp/services/UserService.dart';
+import 'package:frontendapp/screens/reset_password_screen.dart';
+import 'package:frontendapp/dtos/UserLoginDTO.dart';
+import 'package:frontendapp/models/user.dart';
+import 'package:frontendapp/config.dart';
 
-class DangNhapScreen extends StatelessWidget {
+class DangNhapScreen extends StatefulWidget {
   const DangNhapScreen({super.key});
+
+  @override
+  State<DangNhapScreen> createState() => _DangNhapScreenState();
+}
+
+class _DangNhapScreenState extends State<DangNhapScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _phonenumberController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+  bool _isButtonEnabled = false;
+
+  final UserService _userService = UserService();
+
+  @override
+  void initState() {
+    super.initState();
+    _phonenumberController.addListener(_updateButtonState);
+    _passwordController.addListener(_updateButtonState);
+  }
+
+  void _updateButtonState() {
+    setState(() {
+      _isButtonEnabled = _phonenumberController.text.isNotEmpty && _passwordController.text.isNotEmpty;
+    });
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final userLoginDTO = UserLoginDTO(
+        phonenumber: _phonenumberController.text,
+        password: _passwordController.text,
+      );
+
+      final user = await _userService.login(userLoginDTO);
+
+      if (mounted) {
+        // Lưu trạng thái đăng nhập và thông tin người dùng vào Config
+        Config.isLogin = true;
+        Config.currentUser = user;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng nhập thành công!')),
+        );
+
+        // Điều hướng đến UserScreen
+        Navigator.pushReplacementNamed(context, '/user');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi đăng nhập: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _phonenumberController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +97,9 @@ class DangNhapScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           const SizedBox(height: 20),
           Image.asset('assets/images/login_banner.png', height: 150),
@@ -29,48 +111,77 @@ class DangNhapScreen extends StatelessWidget {
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                const CustomTextField(
-                  icon: Icons.person_outline,
-                  hint: 'Email',
-                ),
-                const SizedBox(height: 12),
-                const CustomTextField(
-                  icon: Icons.lock_outline,
-                  hint: 'Mật khẩu',
-                  isPassword: true,
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const QuenMatKhauScreen(),
-                        ),
-                      );
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  CustomTextField(
+                    icon: Icons.person_outline,
+                    hint: 'Số điện thoại',
+                    controller: _phonenumberController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Vui lòng nhập số điện thoại';
+                      }
+                      if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                        return 'Số điện thoại phải có 10 chữ số';
+                      }
+                      return null;
                     },
-                    child: const Text(
-                      'Quên mật khẩu?',
-                      style: TextStyle(
-                        color: Colors.blue,
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    icon: Icons.lock_outline,
+                    hint: 'Mật khẩu',
+                    isPassword: true,
+                    obscureText: _obscurePassword,
+                    controller: _passwordController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Vui lòng nhập mật khẩu';
+                      }
+                      if (value.length < 6) {
+                        return 'Mật khẩu phải có ít nhất 6 ký tự';
+                      }
+                      return null;
+                    },
+                    onEyeTap: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const QuenMatKhauScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Quên mật khẩu?',
+                        style: TextStyle(
+                          color: Colors.blue,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: null, // mặc định disabled
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
-                    backgroundColor: Colors.grey[300],
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _isButtonEnabled && !_isLoading ? _login : null,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      backgroundColor: _isButtonEnabled ? Colors.blue : Colors.grey[300],
+                    ),
+                    child: const Text('Đăng nhập'),
                   ),
-                  child: const Text('Đăng nhập'),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const Spacer(),
@@ -84,7 +195,7 @@ class DangNhapScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: () {
-                    // chuyển sang màn hình đăng ký
+                    Navigator.pushNamed(context, '/dangky');
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.orange,
@@ -108,23 +219,41 @@ class CustomTextField extends StatelessWidget {
   final IconData icon;
   final String hint;
   final bool isPassword;
+  final bool obscureText;
+  final TextEditingController? controller;
+  final VoidCallback? onEyeTap;
+  final String? Function(String?)? validator;
 
   const CustomTextField({
     required this.icon,
     required this.hint,
     this.isPassword = false,
+    this.obscureText = true,
+    this.controller,
+    this.onEyeTap,
+    this.validator,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      obscureText: isPassword,
+      controller: controller,
+      obscureText: isPassword ? obscureText : false,
       decoration: InputDecoration(
         prefixIcon: Icon(icon),
         hintText: hint,
         border: const OutlineInputBorder(),
         contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        suffixIcon: isPassword
+            ? IconButton(
+          icon: Icon(
+            obscureText ? Icons.visibility_off : Icons.visibility,
+            color: Colors.grey,
+          ),
+          onPressed: onEyeTap,
+        )
+            : null,
       ),
     );
   }

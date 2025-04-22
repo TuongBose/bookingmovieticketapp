@@ -41,7 +41,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(
             @Valid @RequestBody UserLoginDTO userLoginDTO,
             BindingResult result

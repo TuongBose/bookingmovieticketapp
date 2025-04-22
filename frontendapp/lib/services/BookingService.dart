@@ -45,4 +45,22 @@ class BookingService {
       throw Exception('Error fetching bookings: $e');
     }
   }
+
+  Future<int> sumTotalPriceByUserId(int id) async {
+    final url = Uri.parse('${Config.BASEURL}/api/v1/bookings/users/$id/totalprice');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
+      );
+      if (response.statusCode == 200) {
+        final int data = jsonDecode(response.body);
+        return data;
+      } else {
+        throw Exception('Failed to load totalprice: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching totalprice: $e');
+    }
+  }
 }

@@ -10,8 +10,8 @@ import lombok.*;
 @Getter
 @Setter
 public class UserLoginDTO {
-    @NotBlank(message = "So dien thoai khong duoc bo trong")
+    @NotBlank(message = "Số điện thoại không được bỏ trống")
     private String phonenumber;
-    @NotBlank(message = "Password khong duoc bo trong")
+    @NotBlank(message = "Password không được bỏ trống")
     private String password;
 }
