@@ -21,12 +21,12 @@ class MovieDetailScreen extends StatefulWidget {
     super.key,
     required this.movie,
     required this.selectedLocation,
-    required this.cities, // Nhận cities từ HomeScreen
+    required this.cities,
   });
 
   final Movie movie;
   final String selectedLocation;
-  final List<String> cities; // Thêm tham số cities
+  final List<String> cities;
 
   @override
   State<MovieDetailScreen> createState() => _MovieDetailScreenState();
@@ -454,7 +454,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               Flexible(
                                 child: ListView.builder(
                                   shrinkWrap: true,
-                                  itemCount: widget.cities.length, // Sử dụng widget.cities
+                                  itemCount: widget.cities.length,
                                   itemBuilder: (context, index) {
                                     final city = widget.cities[index];
                                     final isSelected = currentLocation == city;
@@ -699,7 +699,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                                     Flexible(
                                       child: ListView.builder(
                                         shrinkWrap: true,
-                                        itemCount: widget.cities.length, // Sử dụng widget.cities
+                                        itemCount: widget.cities.length,
                                         itemBuilder: (context, index) {
                                           final city = widget.cities[index];
                                           final isSelected = currentLocation == city;
@@ -789,23 +789,23 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               final time = DateFormat('h:mm a').format(show.startTime);
                               return OutlinedButton(
                                 onPressed: () async {
-                                  final room = await getRoomById(show.roomId);
-                                  if (room != null) {
-                                    final seats = await getSeatByRoomId(show.roomId);
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => SeatSelectionScreen(
-                                          room: room,
-                                          allSeats: seats,
-                                          showtime: show,
-                                          movie: widget.movie,
-                                          cinema: cinema,
-                                          listshowtime: showtimes,
-                                        ),
-                                      ),
+                                  // Kiểm tra trạng thái đăng nhập
+                                  if (!Config.isLogin) {
+                                    // Hiển thị thông báo yêu cầu đăng nhập
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Vui lòng đăng nhập để chọn ghế!')),
                                     );
+                                    // Chưa đăng nhập: Điều hướng đến DangNhapScreen và chờ kết quả
+                                    final result = await Navigator.pushNamed(context, '/dangnhap');
+                                    if (result == true && mounted) {
+                                      // Đăng nhập thành công, tiếp tục đến SeatSelectionScreen
+                                      _navigateToSeatSelectionScreen(cinema, show, showtimes);
+                                    }
+                                    // Nếu đăng nhập thất bại hoặc bị hủy, không làm gì thêm
+                                    return;
                                   }
+                                  // Đã đăng nhập: Điều hướng trực tiếp đến SeatSelectionScreen
+                                  _navigateToSeatSelectionScreen(cinema, show, showtimes);
                                 },
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -829,6 +829,30 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
         ],
       ),
     );
+  }
+
+  void _navigateToSeatSelectionScreen(Cinema cinema, Showtime show, List<Showtime> showtimes) async {
+    final room = await getRoomById(show.roomId);
+    if (room != null) {
+      final seats = await getSeatByRoomId(show.roomId);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SeatSelectionScreen(
+            room: room,
+            allSeats: seats,
+            showtime: show,
+            movie: widget.movie,
+            cinema: cinema,
+            listshowtime: showtimes,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể tải thông tin phòng chiếu')),
+      );
+    }
   }
 
   Widget _buildInfoTag(String text, Color color, {IconData? icon}) {
@@ -967,7 +991,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                             builder: (context) => MovieDetailScreen(
                               movie: movie,
                               selectedLocation: currentLocation,
-                              cities: widget.cities, // Truyền cities đã nhận
+                              cities: widget.cities,
                             ),
                           ),
                         );

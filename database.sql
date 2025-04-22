@@ -171,7 +171,7 @@ VALUES
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
 VALUES 
-(1, 147, '2024-04-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 1);
+(1, 148, '2025-04-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 1);
 
 INSERT INTO bookingdetails (bookingid, seatid, price)
 VALUES 

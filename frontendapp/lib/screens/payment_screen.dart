@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../config.dart';
 import '../dtos/BookingDTO.dart';
 import '../dtos/BookingDetailDTO.dart';
 import '../models/cinema.dart';
@@ -14,9 +15,9 @@ class PaymentScreen extends StatefulWidget {
   final Cinema cinema;
   final Room room;
   final DateTime showTime;
-  final int showTimeId; // Thêm showtimeId
+  final int showTimeId;
   final List<String> selectedSeats;
-  final List<Seat> selectedSeatsWithId; // Thêm danh sách ghế đầy đủ
+  final List<Seat> selectedSeatsWithId;
   final int totalPrice;
 
   const PaymentScreen({
@@ -46,20 +47,36 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     try {
-      // 1. Tạo Booking
+      // Kiểm tra trạng thái đăng nhập và thông tin người dùng
+      print('Checking login status...');
+      if (!Config.isLogin) {
+        throw Exception('Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.');
+      }
+      if (Config.currentUser == null || Config.currentUser!.id == null) {
+        throw Exception('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+      }
+
+      print('User logged in. User ID: ${Config.currentUser!.id}');
+
+      // 1. Tạo Booking với userId từ Config.currentUser
+      print('Creating booking...');
       final bookingService = BookingService();
       final bookingDTO = BookingDTO(
-        userId: 1, // Giả định userId, bạn cần lấy từ thông tin người dùng đăng nhập
+        userId: Config.currentUser!.id!,
         showtimeId: widget.showTimeId,
-        totalPrice:widget.totalPrice - _starsDiscount.toDouble(),
+        totalPrice: widget.totalPrice - _starsDiscount.toDouble(),
         paymentMethod: _selectedPaymentMethod!,
         paymentStatus: 'COMPLETED',
       );
 
       final bookingId = await bookingService.createBooking(bookingDTO);
+      if (bookingId == null) {
+        throw Exception('Không thể tạo booking. Vui lòng thử lại.');
+      }
       print('Created booking with ID: $bookingId');
 
       // 2. Tạo BookingDetail cho từng ghế được chọn
+      print('Creating booking details...');
       final bookingDetailService = BookingDetailService();
       final pricePerSeat = (widget.totalPrice - _starsDiscount) ~/ widget.selectedSeats.length;
 
@@ -75,23 +92,53 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       // 3. Hiển thị thông báo thành công và quay về màn hình chính
       if (mounted) {
+        print('Payment successful. Navigating back to home screen...');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Thanh toán thành công với ${_selectedPaymentMethod}!'),
           ),
         );
-        Navigator.popUntil(context, ModalRoute.withName('/'));
+        // Kiểm tra xem route '/default' có tồn tại không
+        bool routeExists = false;
+        Navigator.popUntil(context, (route) {
+          if (route.settings.name == '/default') {
+            routeExists = true;
+            return true;
+          }
+          return false;
+        });
+        if (!routeExists) {
+          print('Route /default not found in the stack. Pushing to /default...');
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/default',
+                (route) => false, // Xóa toàn bộ stack và thay bằng /default
+          );
+        }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Error during payment: $e');
+      print('Stack trace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Lỗi khi thanh toán: $e'),
           ),
         );
+        // Nếu lỗi do chưa đăng nhập, điều hướng đến màn hình đăng nhập
+        if (e.toString().contains('đăng nhập')) {
+          print('Redirecting to login screen...');
+          Navigator.pushNamed(context, '/dangnhap').then((result) {
+            if (result == true && mounted) {
+              print('Login successful. Retrying payment...');
+              _processPayment();
+            }
+          });
+        }
       }
     } finally {
       if (mounted) {
+        print('Setting isLoading to false...');
         setState(() {
           _isLoading = false;
         });
@@ -146,6 +193,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               width: 80,
                               height: 120,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('Error loading movie poster: $error');
+                                return Container(
+                                  width: 80,
+                                  height: 120,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.broken_image),
+                                );
+                              },
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -210,8 +266,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
+                    padding: const EdgeInsets.all(10),
+                    child: const Text(
                       'Thông tin giao dịch',
                       style: TextStyle(
                         fontSize: 16,
@@ -238,12 +294,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 children: [
                                   Text(
                                     '${widget.selectedSeats.length}x',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  Text(' - ', style: TextStyle(fontSize: 30)),
+                                  const Text(' - ', style: TextStyle(fontSize: 30)),
                                   Text(
                                     widget.selectedSeats.join(", "),
                                     style: const TextStyle(fontSize: 15),
@@ -265,7 +321,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             children: [
                               Text(
                                 "Khuyến mãi",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.orange,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -302,11 +358,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(),
+                              const Row(),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     'Tổng cộng',
                                     style: TextStyle(
                                       fontSize: 15,
@@ -319,7 +375,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    formatter.format(widget.totalPrice),
+                                    formatter.format(totalPriceAfterDiscount),
                                     style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -336,8 +392,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   const SizedBox(height: 16),
                   Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
+                    padding: const EdgeInsets.all(10),
+                    child: const Text(
                       'Thông tin thanh toán',
                       style: TextStyle(
                         fontSize: 16,
@@ -368,6 +424,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               'assets/images/momo_icon.png',
                               width: 30,
                               height: 30,
+                              errorBuilder: (context, error, stackTrace) {
+                                print('Error loading momo icon: $error');
+                                return const Icon(Icons.broken_image, size: 30);
+                              },
                             ),
                           ),
                         ],

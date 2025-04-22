@@ -51,7 +51,6 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
       final user = await _userService.login(userLoginDTO);
 
       if (mounted) {
-        // Lưu trạng thái đăng nhập và thông tin người dùng vào Config
         Config.isLogin = true;
         Config.currentUser = user;
 
@@ -59,8 +58,8 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
           const SnackBar(content: Text('Đăng nhập thành công!')),
         );
 
-        // Điều hướng đến UserScreen
-        Navigator.pushReplacementNamed(context, '/user');
+        // Điều hướng đến DefaultScreen và chọn tab "Tài khoản" (index 3)
+        Navigator.pushReplacementNamed(context, '/default', arguments: 3);
       }
     } catch (e) {
       if (mounted) {

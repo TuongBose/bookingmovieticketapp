@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontendapp/screens/default_screen.dart';
-import 'package:frontendapp/screens/home_screen.dart';
 import 'package:frontendapp/screens/login_screen.dart';
-import 'package:frontendapp/screens/user_screen.dart';
+import 'package:frontendapp/screens/register_screen.dart';
+import 'package:frontendapp/screens/reset_password_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,21 +14,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'App Đặt Vé Galaxy Cinema',
-      debugShowCheckedModeBanner: false,
+      title: 'My App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
       ),
       initialRoute: '/default',
-      routes: {
-        '/default': (context) => const DefaultScreen(),
-        '/home': (context) => const HomeScreen(),
-        '/dangnhap': (context) => const DangNhapScreen(),
-        '/user': (context) => const UserScreen(),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/default':
+            final int initialIndex = settings.arguments as int? ?? 0;
+            return MaterialPageRoute(
+              builder: (context) => DefaultScreen(initialIndex: initialIndex),
+            );
+          case '/dangnhap':
+            return MaterialPageRoute(builder: (context) => const DangNhapScreen());
+          case '/dangky':
+            return MaterialPageRoute(builder: (context) => const DangKyScreen());
+          case '/quenmatkhau':
+            return MaterialPageRoute(builder: (context) => const QuenMatKhauScreen());
+          default:
+            return MaterialPageRoute(builder: (context) => const DefaultScreen());
+        }
       },
     );
   }
 }
-
-
