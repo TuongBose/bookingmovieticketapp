@@ -34,6 +34,7 @@ public class CinemaService implements ICinemaService {
                 .coordinates(cinemaDTO.getCoordinates())
                 .address(cinemaDTO.getAddress())
                 .phonenumber(cinemaDTO.getPhonenumber())
+                .imagename(cinemaDTO.getImagename())
                 .build();
         cinemaRepository.save(newCinema);
         return newCinema;
@@ -49,6 +50,8 @@ public class CinemaService implements ICinemaService {
         existingCinema.setCoordinates(cinemaDTO.getCoordinates());
         existingCinema.setAddress(cinemaDTO.getAddress());
         existingCinema.setPhonenumber(cinemaDTO.getPhonenumber());
+        existingCinema.setMaxroom(cinemaDTO.getMaxroom());
+        existingCinema.setImagename(cinemaDTO.getImagename());
         cinemaRepository.save(existingCinema);
         return existingCinema;
     }

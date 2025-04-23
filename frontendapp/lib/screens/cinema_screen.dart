@@ -1,72 +1,177 @@
 import 'package:flutter/material.dart';
+import '../models/cinema.dart';
+import '../services/CinemaService.dart';
 
-class CinemaScreen extends StatelessWidget {
-  final List<Map<String, String>> cinemas = [
-    {
-      'name': 'Galaxy Sala',
-      'address': 'Tầng 3, Thiso Mall Sala, 10 Mai Chí Thọ, P...',
-      'phone': '1900 2224',
-      'image': 'assets/images/bear.jpg',
-    },
-    {
-      'name': 'Galaxy Tân Bình',
-      'address': '246 Nguyễn Hồng Đào, Q.TB, Tp.HCM',
-      'phone': '1900 2224',
-      'image': 'assets/images/bear.jpg',
-    },
-    {
-      'name': 'Galaxy Kinh Dương Vương',
-      'address': '718bis Kinh Dương Vương, Q6, TpHCM',
-      'phone': '1900 2224',
-      'image': 'assets/images/bear.jpg',
-    },
-    // Thêm các rạp khác ở đây...
-  ];
+class CinemaScreen extends StatefulWidget {
+  const CinemaScreen({super.key});
+
+  @override
+  _CinemaScreenState createState() => _CinemaScreenState();
+}
+
+class _CinemaScreenState extends State<CinemaScreen> {
+  final CinemaService _cinemaService = CinemaService();
+  late Future<List<Cinema>> _cinemasFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _cinemasFuture = _cinemaService.getCinemas();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rạp Phim'),
+        title: const Text(
+          'Rạp phim',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        surfaceTintColor: Colors.transparent, // Ngăn AppBar đổi màu khi cuộn
       ),
-      body: ListView.builder(
-        itemCount: cinemas.length,
-        itemBuilder: (context, index) {
-          final cinema = cinemas[index];
-          return ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                cinema['image']!,
-                width: 70,
-                height: 70,
-                fit: BoxFit.cover,
+      body: Column(
+        children: [
+          // Nút "Toàn quốc" được đặt bên dưới tiêu đề và căn giữa
+          Padding(
+            padding: const EdgeInsets.all(0.0),
+            child: TextButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Chức năng lọc khu vực đang phát triển!')),
+                );
+              },
+              icon: const Icon(
+                Icons.location_on,
+                color: Colors.blue,
+                size: 20,
+              ),
+              label: const Text(
+                'Toàn quốc',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontSize: 14,
+                ),
               ),
             ),
-            title: Text(
-              cinema['name']!,
-              style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          // Đường ngang ngắn phân cách
+          Container(
+          child:
+          const Divider(
+            height: 40,
+            thickness: 1,
+            color: Colors.grey,
+          ),
+          ),
+          // Nội dung danh sách rạp chiếu phim
+          Expanded(
+            child: FutureBuilder<List<Cinema>>(
+              future: _cinemasFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Lỗi khi tải danh sách rạp: ${snapshot.error}'),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _cinemasFuture = _cinemaService.getCinemas();
+                            });
+                          },
+                          child: const Text('Thử lại'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Không có rạp chiếu phim nào'));
+                }
+
+                final cinemas = snapshot.data!;
+
+                return ListView.separated(
+                  itemCount: cinemas.length,
+                  separatorBuilder: (context, index) => const Divider(
+                    height: 40,
+                    thickness: 1,
+                    color: Colors.grey,
+                  ),
+                  itemBuilder: (context, index) {
+                    final cinema = cinemas[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'assets/images/bear.jpg',
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 80,
+                                  height: 80,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.broken_image),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  cinema.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  cinema.address,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  cinema.phoneNumber,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cinema['address']!,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text("Phone: ${cinema['phone']}"),
-              ],
-            ),
-          );
-        },
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1, // Rạp Phim
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Trang Chủ'),
-          BottomNavigationBarItem(icon: Icon(Icons.theaters), label: 'Rạp Phim'),
-          BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'Điện Ảnh'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Tài Khoản'),
+          ),
         ],
       ),
     );

@@ -92,6 +92,7 @@ class _MovieNewsScreenState extends State<MovieNewsScreen> with SingleTickerProv
             fontSize: 20,
           ),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -124,6 +125,7 @@ class _MovieNewsScreenState extends State<MovieNewsScreen> with SingleTickerProv
           unselectedLabelColor: Colors.grey,
           indicatorColor: Colors.blue,
         ),
+        automaticallyImplyLeading: false,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

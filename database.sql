@@ -34,7 +34,8 @@ CREATE TABLE cinemas (
     coordinates VARCHAR(50), -- Lưu tọa độ (latitude, longitude)
     address VARCHAR(255) NOT NULL,
     phonenumber VARCHAR(20),
-    maxroom INT
+    maxroom INT,
+    imagename VARCHAR(100)
 );
 
 CREATE TABLE rooms (

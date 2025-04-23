@@ -21,7 +21,12 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tài khoản'),
+        title: const Text('Tài khoản',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            )
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -34,6 +39,7 @@ class _AccountScreenState extends State<AccountScreen> {
             },
           ),
         ],
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -212,27 +218,6 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Trang chủ',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.theaters_outlined),
-            label: 'Rạp',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.movie_filter_outlined),
-            label: 'Phim',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Tài khoản',
-          ),
-        ],
       ),
     );
   }

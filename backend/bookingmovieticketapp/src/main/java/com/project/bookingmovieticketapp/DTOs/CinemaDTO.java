@@ -15,4 +15,5 @@ public class CinemaDTO {
     private String address;
     private String phonenumber;
     private int maxroom;
+    private String imagename;
 }
