@@ -269,7 +269,7 @@ class _UserScreenState extends State<UserScreen> {
             onTap: () {},
           ),
           _buildListTile(
-            title: 'Email: ${_user?.email ?? 'N/A'}',
+            title: 'Email: huit@gmail.com',
             icon: Icons.email_outlined,
             onTap: () {},
           ),
