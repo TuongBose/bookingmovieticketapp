@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface IShowTimeService {
     List<ShowTimeResponse> getShowTimeByMovieIdAndCinemaIdAndDate(int movieId, int cinemaId, LocalDate date) throws Exception;
+    ShowTimeResponse getShowTimeById(int id) throws Exception;
 }

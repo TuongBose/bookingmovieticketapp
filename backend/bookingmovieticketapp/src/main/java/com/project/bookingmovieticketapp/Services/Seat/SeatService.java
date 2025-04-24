@@ -87,9 +87,16 @@ public class SeatService implements ISeatService{
     }
 
     @Override
-    public Seat getSeatById(int id) throws Exception {
-        return seatRepository.findById(id)
+    public SeatResponse getSeatById(int id) throws Exception {
+        Seat existingSeat = seatRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Khong tim thay SeatId"));
+
+        return SeatResponse
+                .builder()
+                .id(existingSeat.getId())
+                .roomId(existingSeat.getRoom().getId())
+                .seatnumber(existingSeat.getSeatnumber())
+                .build();
     }
 
     @Override

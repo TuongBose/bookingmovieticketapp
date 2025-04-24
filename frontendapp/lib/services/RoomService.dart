@@ -8,7 +8,10 @@ class RoomService {
   Future<Room> getRoomById(int roomId) async {
     final url = Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId');
     try {
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return Room.fromJson(data);

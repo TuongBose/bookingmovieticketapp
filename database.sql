@@ -160,20 +160,20 @@ VALUES
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
 VALUES 
-(1, 1, '2025-04-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 1),
-(2, 2, '2025-04-21 11:00:00', 200000, 'CASH', 'PENDING', 1);
+(1, 1, '2025-04-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 0),
+(1, 2, '2025-04-21 11:00:00', 200000, 'CASH', 'PENDING', 1);
 
 INSERT INTO bookingdetails (bookingid, seatid, price)
 VALUES 
-(1, 1, 75000),
-(1, 2, 75000),
-(2, 3, 100000),
-(2, 4, 100000);
+(6, 1, 75000),
+(6, 2, 75000),
+(7, 3, 100000),
+(7, 4, 100000);
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
 VALUES 
-(1, 148, '2025-04-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 1);
+(1, 148, '2025-04-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 0);
 
 INSERT INTO bookingdetails (bookingid, seatid, price)
 VALUES 
-(4, 4704, 75000);
+(8, 4704, 75000);

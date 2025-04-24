@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ISeatService {
     Seat createSeat(SeatDTO seatDTO) throws Exception;
-    Seat getSeatById(int id) throws Exception;
+    SeatResponse getSeatById(int id) throws Exception;
     Seat updateSeat(int id, SeatDTO seatDTO) throws Exception;
     List<SeatResponse> getSeatByRoomId(int roomId) throws Exception;
 }

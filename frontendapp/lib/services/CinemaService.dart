@@ -21,4 +21,24 @@ class CinemaService {
       throw Exception('Error fetching cinemas: $e');
     }
   }
+
+  Future<Cinema?> getCinemaById(int cinemaId) async {
+    try {
+      final url = Uri.parse('${Config.BASEURL}/api/v1/cinemas/$cinemaId');
+      final response = await http.get(
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return Cinema.fromJson(data);
+      } else {
+        print('Failed to load cinema $cinemaId: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching cinema $cinemaId: $e');
+      return null;
+    }
+  }
 }

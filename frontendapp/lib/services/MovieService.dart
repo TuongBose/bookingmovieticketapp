@@ -35,4 +35,24 @@ class MovieService {
   Future<List<Movie>> getSimilarMovies(int movieId) async {
     return await _fetchMovies('similar/$movieId');
   }
+
+  Future<Movie?> getMovieById(int movieId) async {
+    try {
+      final url = Uri.parse('${Config.BASEURL}/api/v1/movies/$movieId');
+      final response = await http.get(
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return Movie.fromJson(data);
+      } else {
+        print('Failed to load movie $movieId: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching movie $movieId: $e');
+      return null;
+    }
+  }
 }

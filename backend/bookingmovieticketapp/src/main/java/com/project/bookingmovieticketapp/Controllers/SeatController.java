@@ -1,12 +1,10 @@
 package com.project.bookingmovieticketapp.Controllers;
 
 import com.project.bookingmovieticketapp.Services.Seat.SeatService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/seats")
@@ -18,6 +16,15 @@ public class SeatController {
     public ResponseEntity<?> getSeatByRoomId(@RequestParam int roomId) {
         try {
             return ResponseEntity.ok(seatService.getSeatByRoomId(roomId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getSeatById(@Valid @PathVariable int id) {
+        try {
+            return ResponseEntity.ok(seatService.getSeatById(id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

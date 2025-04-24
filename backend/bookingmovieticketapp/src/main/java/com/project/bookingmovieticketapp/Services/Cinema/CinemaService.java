@@ -87,4 +87,9 @@ public class CinemaService implements ICinemaService {
         }
         return filteredCinemas;
     }
+
+    @Override
+    public Cinema getCinemaById(int id) throws Exception {
+        return cinemaRepository.findById(id).orElseThrow(()->new RuntimeException("Khong tim thay CinemaId"));
+    }
 }

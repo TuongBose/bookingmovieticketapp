@@ -2,13 +2,11 @@ package com.project.bookingmovieticketapp.Controllers;
 
 import com.project.bookingmovieticketapp.Models.Cinema;
 import com.project.bookingmovieticketapp.Services.Cinema.CinemaService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,5 +29,17 @@ public class CinemaController {
     @GetMapping("")
     public ResponseEntity<List<Cinema>> getAllCinema(){
         return ResponseEntity.ok(cinemaService.getAllCinema());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCinemaById(@Valid @PathVariable int id)
+    {
+        try{
+            return ResponseEntity.ok(cinemaService.getCinemaById(id));
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

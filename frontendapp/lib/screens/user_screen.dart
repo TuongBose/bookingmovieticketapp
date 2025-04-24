@@ -1,9 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:frontendapp/models/user.dart';
 import 'package:frontendapp/services/BookingService.dart';
+import 'package:frontendapp/services/RoomService.dart';
+import 'package:frontendapp/services/ShowTimeService.dart';
+import 'package:frontendapp/services/MovieService.dart';
+import 'package:frontendapp/services/CinemaService.dart';
 import 'package:frontendapp/config.dart';
 import 'package:intl/intl.dart';
 import '../models/booking.dart';
+import '../models/showtime.dart';
+import '../models/movie.dart';
+import '../models/room.dart';
+import '../models/cinema.dart';
+import 'booking_detail_screen.dart';
+
+// Định nghĩa class BookingDetails (đổi tên từ BookingDetail để đồng bộ)
+class BookingDetails {
+  final Booking booking;
+  final Showtime? showtime;
+  final Movie? movie;
+  final Room? room;
+  final Cinema? cinema;
+  final bool isActive;
+
+  BookingDetails({
+    required this.booking,
+    this.showtime,
+    this.movie,
+    this.room,
+    this.cinema,
+    required this.isActive,
+  });
+}
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -18,11 +46,16 @@ class _UserScreenState extends State<UserScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   int _selectedTab = 0;
-  late Future<List<Booking>> _transactionsFuture; // Thêm Future để lấy giao dịch
+  late Future<List<BookingDetails>> _bookingDetailsFuture;
 
   final BookingService _bookingService = BookingService();
+  final ShowTimeService _showTimeService = ShowTimeService();
+  final MovieService _movieService = MovieService();
+  final CinemaService _cinemaService = CinemaService();
+  final RoomService _roomService = RoomService();
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
   final dateFormatter = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN');
+  final monthYearFormatter = DateFormat('MMMM, yyyy', 'vi_VN');
   final double maxSpendingForProgressBar = 4000000;
 
   @override
@@ -35,11 +68,15 @@ class _UserScreenState extends State<UserScreen> {
     try {
       final user = Config.currentUser;
       if (user == null) {
-        throw Exception('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+        throw Exception(
+          'Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.',
+        );
       }
-      final totalSpending = await _bookingService.sumTotalPriceByUserId(user.id ?? 0);
-      // Khởi tạo Future để lấy giao dịch
-      _transactionsFuture = _bookingService.getBookingByUserId(user.id ?? 0);
+      final totalSpending = await _bookingService.sumTotalPriceByUserId(
+        user.id ?? 0,
+      );
+      // Lấy danh sách booking và thông tin chi tiết
+      _bookingDetailsFuture = _fetchBookingDetails(user.id ?? 0);
       if (mounted) {
         setState(() {
           _user = user;
@@ -57,18 +94,83 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
+  Future<List<BookingDetails>> _fetchBookingDetails(int userId) async {
+    // Lấy danh sách booking
+    final bookings = await _bookingService.getBookingByUserId(userId);
+    List<BookingDetails> bookingDetailsList = [];
+
+    // Lấy thông tin chi tiết cho từng booking
+    for (var booking in bookings) {
+      // Lấy Showtime
+      final showtime = await _showTimeService.getShowtimeById(booking.showtimeId,);
+      Movie? movie;
+      Room? room;
+      Cinema? cinema;
+
+      if (showtime != null) {
+        // Lấy Movie
+        movie = await _movieService.getMovieById(showtime.movieId);
+        // Lấy Room
+        room = await _roomService.getRoomById(showtime.roomId);
+        // Lấy Cinema từ Room
+        cinema = await _cinemaService.getCinemaById(room.cinemaId);
+      }
+
+      bool isActive = booking.isActive;
+      if (!booking.isActive && showtime != null) { // Chỉ tính toán nếu backend không cung cấp isActive
+        final currentTime = DateTime.now();
+        final showtimeStart = showtime.startTime;
+        try {
+          isActive = currentTime.isBefore(showtimeStart);
+          print('Booking ID: ${booking.id}, Showtime: ${showtimeStart}, Current Time: ${currentTime}, isActive: $isActive');
+        } catch (e) {
+          print('Error calculating isActive for booking ${booking.id}: $e');
+          isActive = false;
+        }
+      } else if (showtime == null) {
+        print('Showtime is null for booking ${booking.id}, setting isActive to false');
+        isActive = false;
+      }
+
+      bookingDetailsList.add(
+        BookingDetails(
+          booking: booking,
+          showtime: showtime,
+          movie: movie,
+          room: room,
+          cinema: cinema,
+          isActive: isActive,
+        ),
+      );
+    }
+
+    // Sắp xếp theo ngày giảm dần
+    bookingDetailsList.sort((a, b) {
+      final dateA = DateTime.parse(a.booking.bookingDate);
+      final dateB = DateTime.parse(b.booking.bookingDate);
+      return dateB.compareTo(dateA);
+    });
+
+    return bookingDetailsList;
+  }
+
   Future<void> _logout() async {
     try {
       Config.isLogin = false;
       Config.currentUser = null;
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(context, '/default', (route) => false, arguments: 0);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/default',
+          (route) => false,
+          arguments: 0,
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi đăng xuất: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi đăng xuất: $e')));
       }
     }
   }
@@ -78,7 +180,10 @@ class _UserScreenState extends State<UserScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Tài khoản', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Tài khoản',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -90,34 +195,35 @@ class _UserScreenState extends State<UserScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-          ? Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            _errorMessage!,
-            style: const TextStyle(color: Colors.red),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      )
-          : RefreshIndicator(
-        onRefresh: _fetchUser,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(child: _buildUserInfoSection()),
-              const Divider(height: 10, thickness: 1),
-              _buildTabs(),
-              const Divider(height: 10, thickness: 1),
-              _buildSelectedTabContent(),
-            ],
-          ),
-        ),
-      ),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _errorMessage != null
+              ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _fetchUser,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(child: _buildUserInfoSection()),
+                      const Divider(height: 10, thickness: 1),
+                      _buildTabs(),
+                      const Divider(height: 10, thickness: 1),
+                      _buildSelectedTabContent(),
+                    ],
+                  ),
+                ),
+              ),
     );
   }
 
@@ -130,19 +236,12 @@ class _UserScreenState extends State<UserScreen> {
           CircleAvatar(
             radius: 30,
             backgroundColor: Colors.grey[200],
-            child: Icon(
-              Icons.person,
-              size: 30,
-              color: Colors.grey[400],
-            ),
+            child: Icon(Icons.person, size: 30, color: Colors.grey[400]),
           ),
           const SizedBox(height: 8),
           Text(
             _user?.name ?? 'Unknown User',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -252,10 +351,7 @@ class _UserScreenState extends State<UserScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildOptionButton(
-                icon: Icons.star_border,
-                label: 'Đổi Quà',
-              ),
+              _buildOptionButton(icon: Icons.star_border, label: 'Đổi Quà'),
               _buildOptionButton(
                 icon: Icons.card_giftcard,
                 label: 'My Rewards',
@@ -309,15 +405,17 @@ class _UserScreenState extends State<UserScreen> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.orange[700],
                 side: BorderSide(color: Colors.orange[700]!),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text(
                 'Đăng xuất',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -328,8 +426,8 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildTransactionsTabContent() {
-    return FutureBuilder<List<Booking>>(
-      future: _transactionsFuture,
+    return FutureBuilder<List<BookingDetails>>(
+      future: _bookingDetailsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
@@ -358,38 +456,191 @@ class _UserScreenState extends State<UserScreen> {
           );
         }
 
-        final transactions = snapshot.data!;
+        final bookingDetailsList = snapshot.data!;
+
+        // Nhóm bookings theo tháng/năm
+        Map<String, List<BookingDetails>> bookingsByMonthYear = {};
+        for (var detail in bookingDetailsList) {
+          final date = DateTime.parse(detail.booking.bookingDate);
+          final monthYear = monthYearFormatter.format(date);
+          if (!bookingsByMonthYear.containsKey(monthYear)) {
+            bookingsByMonthYear[monthYear] = [];
+          }
+          bookingsByMonthYear[monthYear]!.add(detail);
+        }
+
+        // Sắp xếp các tháng/năm theo thứ tự giảm dần
+        final sortedKeys =
+            bookingsByMonthYear.keys.toList()..sort((a, b) {
+              final dateA = monthYearFormatter.parse(a);
+              final dateB = monthYearFormatter.parse(b);
+              return dateB.compareTo(dateA);
+            });
+
         return Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ListView.separated(
-            shrinkWrap: true, // Để ListView không chiếm toàn bộ không gian
-            physics: const NeverScrollableScrollPhysics(), // Tắt cuộn riêng của ListView
-            itemCount: transactions.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final transaction = transactions[index];
-              return ListTile(
-                leading: const Icon(Icons.receipt, color: Colors.blue),
-                title: Text(
-                  transaction.showtimeId,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  'Lưu ý: Chỉ hiển thị 20 giao dịch gần nhất',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
-                subtitle: Text(
-                  'Ngày giao dịch: ${dateFormatter.format(transaction.transactionDate)}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                trailing: Text(
-                  currencyFormatter.format(transaction.totalPrice),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                onTap: () {
-                  // Có thể thêm hành động khi nhấn vào giao dịch, ví dụ: xem chi tiết
-                },
-              );
-            },
+              ),
+              const SizedBox(height: 16),
+              ...sortedKeys.map((monthYear) {
+                final bookings = bookingsByMonthYear[monthYear]!;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(
+                        monthYear,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...bookings.map((detail) {
+                      final booking = detail.booking;
+                      final showtime = detail.showtime;
+                      final movie = detail.movie;
+                      final room = detail.room;
+                      final cinema = detail.cinema;
+
+                      // Nếu thiếu thông tin, hiển thị placeholder
+                      if (showtime == null ||
+                          movie == null ||
+                          room == null ||
+                          cinema == null) {
+                        return const SizedBox();
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            // Chuyển hướng đến BookingDetailScreen và truyền BookingDetails
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => BookingDetailScreen(
+                                      bookingDetails: detail,
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      movie.posterUrl,
+                                      width: 80,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (
+                                        context,
+                                        error,
+                                        stackTrace,
+                                      ) {
+                                        print(
+                                          'Error loading movie poster: $error',
+                                        );
+                                        return Container(
+                                          width: 80,
+                                          height: 120,
+                                          color: Colors.grey[300],
+                                          child: const Icon(Icons.broken_image),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          movie.name,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            const Text('2D PHỤ ĐỀ '),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.redAccent,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '${movie.ageRating}',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${cinema.name}',
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          DateFormat(
+                                            "HH:mm - EEEE, dd/MM/yyyy",
+                                            'vi_VN',
+                                          ).format(showtime.startTime),
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                );
+              }).toList(),
+            ],
           ),
         );
       },
@@ -447,24 +698,37 @@ class _UserScreenState extends State<UserScreen> {
           Positioned(
             left: 0,
             top: 15,
-            child: const Text('0đ', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            child: const Text(
+              '0đ',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ),
           Positioned(
             left: screenWidth * 0.5 - 35,
             top: 15,
-            child: const Text('2,000,000đ', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            child: const Text(
+              '2,000,000đ',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ),
           Positioned(
             right: 0,
             top: 15,
-            child: const Text('4,000,000đ', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            child: const Text(
+              '4,000,000đ',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProgressMarker(double positionPercent, double totalWidth, {required bool isActive}) {
+  Widget _buildProgressMarker(
+    double positionPercent,
+    double totalWidth, {
+    required bool isActive,
+  }) {
     return Positioned(
       left: totalWidth * positionPercent - 6,
       top: -5,
@@ -500,7 +764,11 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  Widget _buildListTile({required String title, IconData? icon, required VoidCallback onTap}) {
+  Widget _buildListTile({
+    required String title,
+    IconData? icon,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -514,7 +782,11 @@ class _UserScreenState extends State<UserScreen> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
             const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),

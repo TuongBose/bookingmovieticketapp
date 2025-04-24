@@ -5,6 +5,7 @@ import 'package:frontendapp/screens/home_screen.dart';
 import 'package:frontendapp/screens/movie_news_screen.dart';
 import 'package:frontendapp/screens/user_screen.dart';
 import 'package:frontendapp/screens/account_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class DefaultScreen extends StatelessWidget {
   final int initialIndex;
@@ -32,6 +33,10 @@ class MyDefaultScreenState extends State<MyDefaultScreen> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('vi_VN', null).then((_) {
+      setState(() {});
+    });
+
     // Đặt _selectedIndex ban đầu từ initialIndex
     _selectedIndex = widget.initialIndex;
   }

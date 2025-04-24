@@ -146,6 +146,22 @@ public class ShowTimeService implements IShowTimeService{
         return showTimeResponseList;
     }
 
+    @Override
+    public ShowTimeResponse getShowTimeById(int id) throws Exception{
+        ShowTime existingShowTime =  showTimeRepository.findById(id)
+                .orElseThrow(()->new RuntimeException("Khong tim thay ShowTimeId"));
+
+        return ShowTimeResponse
+                .builder()
+                .id(existingShowTime.getId())
+                .movieId(existingShowTime.getMovie().getId())
+                .roomId(existingShowTime.getRoom().getId())
+                .showdate(existingShowTime.getShowdate())
+                .starttime(existingShowTime.getStarttime())
+                .price(existingShowTime.getPrice())
+                .build();
+    }
+
 
     public List<ShowTimeResponse> getShowtimesByCinemaIdAndDate(int cinemaId, LocalDate showDate) {
         List<ShowTime> showTimeList = showTimeRepository.findByCinemaIdAndShowdate(cinemaId, showDate);
