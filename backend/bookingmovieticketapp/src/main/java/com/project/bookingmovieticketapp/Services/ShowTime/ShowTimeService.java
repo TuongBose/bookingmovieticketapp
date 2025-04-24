@@ -145,4 +145,28 @@ public class ShowTimeService implements IShowTimeService{
 
         return showTimeResponseList;
     }
+
+
+    public List<ShowTimeResponse> getShowtimesByCinemaIdAndDate(int cinemaId, LocalDate showDate) {
+        List<ShowTime> showTimeList = showTimeRepository.findByCinemaIdAndShowdate(cinemaId, showDate);
+
+        List<ShowTimeResponse> showTimeResponseList = new ArrayList<>();
+        if(!showTimeList.isEmpty())
+            for(ShowTime showTime:showTimeList)
+            {
+                ShowTimeResponse newShowTimeResponse = ShowTimeResponse
+                        .builder()
+                        .id(showTime.getId())
+                        .movieId(showTime.getMovie().getId())
+                        .roomId(showTime.getRoom().getId())
+                        .showdate(showTime.getShowdate())
+                        .starttime(showTime.getStarttime())
+                        .price(showTime.getPrice())
+                        .build();
+
+                showTimeResponseList.add(newShowTimeResponse);
+            }
+
+        return showTimeResponseList;
+    }
 }

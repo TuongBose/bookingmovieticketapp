@@ -33,4 +33,14 @@ public class MovieController {
         List<Movie> similarMovies = movieService.getSimilarMovies(movieId);
         return ResponseEntity.ok(similarMovies);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getMovieById(@PathVariable int id)
+    {
+        try{
+            return ResponseEntity.ok(movieService.getMovieById(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

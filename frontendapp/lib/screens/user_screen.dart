@@ -3,6 +3,7 @@ import 'package:frontendapp/models/user.dart';
 import 'package:frontendapp/services/BookingService.dart';
 import 'package:frontendapp/config.dart';
 import 'package:intl/intl.dart';
+import '../models/booking.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -17,9 +18,11 @@ class _UserScreenState extends State<UserScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   int _selectedTab = 0;
+  late Future<List<Booking>> _transactionsFuture; // Thêm Future để lấy giao dịch
 
   final BookingService _bookingService = BookingService();
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
+  final dateFormatter = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN');
   final double maxSpendingForProgressBar = 4000000;
 
   @override
@@ -35,6 +38,8 @@ class _UserScreenState extends State<UserScreen> {
         throw Exception('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
       }
       final totalSpending = await _bookingService.sumTotalPriceByUserId(user.id ?? 0);
+      // Khởi tạo Future để lấy giao dịch
+      _transactionsFuture = _bookingService.getBookingByUserId(user.id ?? 0);
       if (mounted) {
         setState(() {
           _user = user;
@@ -57,7 +62,6 @@ class _UserScreenState extends State<UserScreen> {
       Config.isLogin = false;
       Config.currentUser = null;
       if (mounted) {
-        // Điều hướng về DefaultScreen và chọn tab "Trang chủ" (index 0)
         Navigator.pushNamedAndRemoveUntil(context, '/default', (route) => false, arguments: 0);
       }
     } catch (e) {
@@ -324,14 +328,71 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildTransactionsTabContent() {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Center(
-        child: Text(
-          'Chưa có giao dịch nào.',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      ),
+    return FutureBuilder<List<Booking>>(
+      future: _transactionsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasError) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                'Lỗi khi tải giao dịch',
+                style: TextStyle(fontSize: 16, color: Colors.red),
+              ),
+            ),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                'Chưa có giao dịch nào.',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ),
+          );
+        }
+
+        final transactions = snapshot.data!;
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView.separated(
+            shrinkWrap: true, // Để ListView không chiếm toàn bộ không gian
+            physics: const NeverScrollableScrollPhysics(), // Tắt cuộn riêng của ListView
+            itemCount: transactions.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final transaction = transactions[index];
+              return ListTile(
+                leading: const Icon(Icons.receipt, color: Colors.blue),
+                title: Text(
+                  transaction.showtimeId,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Ngày giao dịch: ${dateFormatter.format(transaction.transactionDate)}',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                trailing: Text(
+                  currencyFormatter.format(transaction.totalPrice),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                onTap: () {
+                  // Có thể thêm hành động khi nhấn vào giao dịch, ví dụ: xem chi tiết
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

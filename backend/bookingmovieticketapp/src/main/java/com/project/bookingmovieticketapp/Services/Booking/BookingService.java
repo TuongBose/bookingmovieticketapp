@@ -81,10 +81,35 @@ public class BookingService implements IBookingService {
     }
 
     @Override
-    public List<Booking> getBookingByUserId(int id) throws Exception {
+    public List<BookingResponse> getBookingByUserId(int id) throws Exception {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay UserId"));
-        return bookingRepository.findByUserId(existingUser.getId());
+        List<Booking> bookingList = bookingRepository.findByUserId(existingUser.getId());
+
+        List<BookingResponse> bookingResponseList = new ArrayList<>();
+        if(bookingList.isEmpty())
+        {
+           throw new RuntimeException("Chưa có giao dịch nào");
+        }
+        else
+        {
+            for(Booking booking:bookingList)
+            {
+                BookingResponse newBookingResponse = BookingResponse
+                        .builder()
+                        .id(booking.getId())
+                        .userId(booking.getUser().getId())
+                        .showTimeId(booking.getShowTime().getId())
+                        .bookingdate(booking.getBookingdate())
+                        .totalprice(booking.getTotalprice())
+                        .paymentmethod(booking.getPaymentmethod())
+                        .paymentstatus(booking.getPaymentstatus())
+                        .isactive(booking.isIsactive())
+                        .build();
+                bookingResponseList.add(newBookingResponse);
+            }
+            return bookingResponseList;
+        }
     }
 
     @Override

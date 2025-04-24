@@ -15,4 +15,5 @@ public interface IMovieService {
     List<Movie> getUpComing();
     Page<Movie> getAllMovie(PageRequest pageRequest);
     boolean existsByName(String name);
+    Movie getMovieById(int id) throws Exception;
 }

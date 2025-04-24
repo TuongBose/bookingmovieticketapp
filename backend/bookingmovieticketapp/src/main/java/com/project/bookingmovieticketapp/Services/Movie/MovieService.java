@@ -335,4 +335,10 @@ public class MovieService implements IMovieService {
     public boolean existsByName(String name) {
         return movieRepository.existsByName(name);
     }
+
+    @Override
+    public Movie getMovieById(int id) throws Exception {
+        return movieRepository.findById(id)
+                .orElseThrow(()-> new RuntimeException("Khong tim thay MovieId"));
+    }
 }

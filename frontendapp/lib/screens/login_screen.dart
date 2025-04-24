@@ -31,7 +31,9 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
 
   void _updateButtonState() {
     setState(() {
-      _isButtonEnabled = _phonenumberController.text.isNotEmpty && _passwordController.text.isNotEmpty;
+      _isButtonEnabled =
+          _phonenumberController.text.isNotEmpty &&
+          _passwordController.text.isNotEmpty;
     });
   }
 
@@ -54,18 +56,18 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
         Config.isLogin = true;
         Config.currentUser = user;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đăng nhập thành công!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đăng nhập thành công!')));
 
         // Điều hướng đến DefaultScreen và chọn tab "Tài khoản" (index 3)
         Navigator.pushReplacementNamed(context, '/default', arguments: 3);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi đăng nhập: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi đăng nhập: $e')));
       }
     } finally {
       if (mounted) {
@@ -96,120 +98,136 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          const SizedBox(height: 20),
-          Image.asset('assets/images/login_banner.png', height: 150),
-          const SizedBox(height: 12),
-          const Text(
-            'Đăng Nhập Với Tài Khoản Của Bạn',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  CustomTextField(
-                    icon: Icons.person_outline,
-                    hint: 'Số điện thoại',
-                    controller: _phonenumberController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập số điện thoại';
-                      }
-                      if (!RegExp(r'^\d{10}$').hasMatch(value)) {
-                        return 'Số điện thoại phải có 10 chữ số';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  CustomTextField(
-                    icon: Icons.lock_outline,
-                    hint: 'Mật khẩu',
-                    isPassword: true,
-                    obscureText: _obscurePassword,
-                    controller: _passwordController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu';
-                      }
-                      if (value.length < 6) {
-                        return 'Mật khẩu phải có ít nhất 6 ký tự';
-                      }
-                      return null;
-                    },
-                    onEyeTap: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const QuenMatKhauScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Quên mật khẩu?',
-                        style: TextStyle(
-                          color: Colors.blue,
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                // Thêm SingleChildScrollView
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Image.asset('assets/images/login_banner.png', height: 150),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Đăng Nhập Với Tài Khoản Của Bạn',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            CustomTextField(
+                              icon: Icons.person_outline,
+                              hint: 'Số điện thoại',
+                              controller: _phonenumberController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Vui lòng nhập số điện thoại';
+                                }
+                                if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                                  return 'Số điện thoại phải có 10 chữ số';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            CustomTextField(
+                              icon: Icons.lock_outline,
+                              hint: 'Mật khẩu',
+                              isPassword: true,
+                              obscureText: _obscurePassword,
+                              controller: _passwordController,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Vui lòng nhập mật khẩu';
+                                }
+                                if (value.length < 6) {
+                                  return 'Mật khẩu phải có ít nhất 6 ký tự';
+                                }
+                                return null;
+                              },
+                              onEyeTap: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              const QuenMatKhauScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Quên mật khẩu?',
+                                  style: TextStyle(color: Colors.blue),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed:
+                                  _isButtonEnabled && !_isLoading
+                                      ? _login
+                                      : null,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                                backgroundColor:
+                                    _isButtonEnabled
+                                        ? Colors.blue
+                                        : Colors.grey[300],
+                              ),
+                              child: const Text('Đăng nhập'),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _isButtonEnabled && !_isLoading ? _login : null,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      backgroundColor: _isButtonEnabled ? Colors.blue : Colors.grey[300],
+                    const SizedBox(height: 220,),
+                    const Divider(),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 20,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Người dùng mới!'),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/dangky');
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                              side: const BorderSide(color: Colors.orange),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            child: const Text('Đăng ký'),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: const Text('Đăng nhập'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Người dùng mới!'),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/dangky');
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.orange,
-                    side: const BorderSide(color: Colors.orange),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  child: const Text('Đăng ký'),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
+              ),
     );
   }
 }
@@ -244,15 +262,16 @@ class CustomTextField extends StatelessWidget {
         hintText: hint,
         border: const OutlineInputBorder(),
         contentPadding: const EdgeInsets.symmetric(vertical: 12),
-        suffixIcon: isPassword
-            ? IconButton(
-          icon: Icon(
-            obscureText ? Icons.visibility_off : Icons.visibility,
-            color: Colors.grey,
-          ),
-          onPressed: onEyeTap,
-        )
-            : null,
+        suffixIcon:
+            isPassword
+                ? IconButton(
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: onEyeTap,
+                )
+                : null,
       ),
     );
   }

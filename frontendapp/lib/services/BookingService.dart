@@ -63,4 +63,23 @@ class BookingService {
       throw Exception('Error fetching totalprice: $e');
     }
   }
+  Future<List<Booking>> getBookingByUserId(int userId) async {
+    try {
+      final url = Uri.parse('${Config.BASEURL}/api/v1/bookings/users/$userId/bookings');
+      final response = await http.get(
+        url,
+        headers: {'Accept': 'application/json; charset=UTF-8'},
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Booking.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load Booking: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching booking: $e');
+      return [];
+    }
+  }
+
 }

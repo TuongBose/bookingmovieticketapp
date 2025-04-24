@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontendapp/screens/cinema_showtime_screen.dart';
 import '../models/cinema.dart';
 import '../services/CinemaService.dart';
 
@@ -109,7 +110,12 @@ class _CinemaScreenState extends State<CinemaScreen> {
                   ),
                   itemBuilder: (context, index) {
                     final cinema = cinemas[index];
-                    return Padding(
+                    return GestureDetector(onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>CinemaShowTimesScreen(cinema:cinema)));
+                    },
+                    child:
+
+                      Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,6 +172,7 @@ class _CinemaScreenState extends State<CinemaScreen> {
                           ),
                         ],
                       ),
+                    ),
                     );
                   },
                 );

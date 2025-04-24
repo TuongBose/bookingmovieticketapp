@@ -56,4 +56,13 @@ public class BookingController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/users/{userId}/bookings")
+    public ResponseEntity<?> getBookingByUserId(@Valid @PathVariable int userId) {
+        try {
+            return ResponseEntity.ok(bookingService.getBookingByUserId(userId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

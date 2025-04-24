@@ -32,4 +32,12 @@ public class ShowTimeController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/cinemaanddate")
+    public ResponseEntity<List<ShowTimeResponse>> getShowtimes(
+            @RequestParam("cinemaId") int cinemaId,
+            @RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+        List<ShowTimeResponse> showtimes = showTimeService.getShowtimesByCinemaIdAndDate(cinemaId, date);
+        return ResponseEntity.ok(showtimes);
+    }
 }
