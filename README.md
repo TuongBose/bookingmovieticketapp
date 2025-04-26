@@ -114,6 +114,12 @@ npm install
 npm start
 ```
 
+Or
+
+```bash
+ng serve
+```
+
 ## Code Conventions
 
 ### Flutter/Dart
