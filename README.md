@@ -176,7 +176,7 @@ flutter clean       # Clean build files
 ### Admin Panel
 
 ```bash
-npm run start or ng serve     # Start development server
+npm run start     # Start development server
 npm run build     # Build production version
 npm run test      # Run unit tests
 ```
