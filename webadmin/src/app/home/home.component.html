@@ -19,24 +19,25 @@
 <div>
   <!-- Sidebar -->
   <div class="sidebar">
-    <a href="#">
+    <a routerLink="/">
       <h4 class="text-center">Admin Panel</h4>
     </a>
     <hr />
-    <a href="#">Quản Lý phim</a>
+    <a routerLink="/movies" routerLinkActive="active">Quản Lý phim</a>
     <hr />
-    <a href="#">Quản Lý Cinema</a>
+    <a routerLink="cinemas" routerLinkActive="active">Quản Lý Cinema</a>
     <hr />
-    <a href="#">Quản lý suất chiếu</a>
-    <a href="#">Quản lý tài khoản khách hàng</a>
-    <a href="#">Quản lý tài khoản Admin</a>
+    <a routerLink="showtimes" routerLinkActive="active">Quản lý suất chiếu</a>
+    <a routerLink="customers" routerLinkActive="active">Quản lý tài khoản khách hàng</a>
+    <a routerLink="admins" routerLinkActive="active">Quản lý tài khoản Admin</a>
     <hr />
-    <a href="#" class="text-danger">Đăng Xuất</a>
+    <a (click)="logout()" class="text-danger" style="cursor: pointer;">Đăng Xuất</a>
   </div>
 
   <!-- Main content -->
   <div class="content">
     <div class="container">
+      <router-outlet></router-outlet>
     </div>
   </div>
 

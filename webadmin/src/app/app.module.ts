@@ -8,9 +8,14 @@ import { CinemaListComponent } from './cinema-list/cinema-list.component';
 import { ShowtimeListComponent } from './showtime-list/showtime-list.component';
 import { CustomerListComponent } from './customer-list/customer-list.component';
 import { AdminListComponent } from './admin-list/admin-list.component';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { AppRoutingModule } from './app-routing.module';
+import { AuthGuard } from './guard/auth.guard';
+import { AppComponent } from './app.component';
 
 @NgModule({
   declarations: [
+    AppComponent,
     LoginComponent,
     HomeComponent,
     MovieListComponent,
@@ -21,11 +26,11 @@ import { AdminListComponent } from './admin-list/admin-list.component';
   ],
   imports: [
     BrowserModule,
+    HttpClientModule,
+    AppRoutingModule,
     FormsModule
   ],
-  providers: [
-    provideClientHydration(withEventReplay())
-  ],
+  providers: [AuthGuard],
   bootstrap: [HomeComponent]
 })
 export class AppModule { }
