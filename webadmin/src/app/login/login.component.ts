@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { privateDecrypt } from 'crypto';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-login',
@@ -13,7 +15,11 @@ export class LoginComponent {
   password: string = '';
   errorMessage: string = '';
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router, 
+    private authService: AuthService,
+    @Inject (PLATFORM_ID) private platformId: Object
+  ) {}
 
   login(): void {
     const userLoginDTO = {
@@ -21,10 +27,11 @@ export class LoginComponent {
       password: this.password,
     };
     this.authService.login(userLoginDTO).subscribe({
-      next: (user) => {
-        this.authService.setUser(user);
-        this.router.navigate(['']);
-      },
+      next: (response) => {
+        this.authService.setUser(response);
+        if (isPlatformBrowser(this.platformId)){
+        this.router.navigate(['/home']);
+      }},
       error: (error) => {
         this.errorMessage =
           error.error || 'Dang nhap that bai vui long kiem tra lai thong tin';

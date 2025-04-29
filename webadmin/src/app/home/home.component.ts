@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { platformBrowser } from '@angular/platform-browser';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-home',
@@ -9,10 +11,16 @@ import { Router } from '@angular/router';
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
-  constructor(private authService:AuthService, private router: Router){}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) { }
 
-  logout(): void{
+  logout(): void {
     this.authService.logout();
-    this.router.navigate(['/login'])
+    if (isPlatformBrowser(this.platformId)) {
+      this.router.navigate(['/login'])
+    }
   }
 }

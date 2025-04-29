@@ -31,6 +31,6 @@ import { AppComponent } from './app.component';
     FormsModule
   ],
   providers: [AuthGuard],
-  bootstrap: [HomeComponent]
+  bootstrap: [LoginComponent]
 })
 export class AppModule { }

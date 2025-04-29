@@ -10,9 +10,10 @@ import { LoginComponent } from './login/login.component';
 import { AuthGuard } from './guard/auth.guard';
 
 const routes: Routes = [
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   {path: 'login', component: LoginComponent},
   {
-    path: '',
+    path: 'home',
     component: HomeComponent,
     canActivate: [AuthGuard],
     children: [
@@ -24,7 +25,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'movies', pathMatch: 'full' } // Mặc định hiển thị Quản lý phim
     ]
   },
-  { path: '**', redirectTo: '' } // Chuyển hướng về trang chính nếu đường dẫn không tồn tại
+  { path: '**', redirectTo: 'login' } // Chuyển hướng về trang chính nếu đường dẫn không tồn tại
 ];
 
 @NgModule({
