@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -156,5 +155,95 @@ public class BookingService implements IBookingService {
             return sum;
         }
         return 0;
+    }
+
+    @Override
+    public Map<String, Object> getMostBookedMovie(int month, int year) {
+        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endDate = startDate.plusMonths(1).minusSeconds(1);
+
+        // Query tìm phim được đặt nhiều nhất trong tháng
+        List<Object[]> result = bookingRepository.findMostBookedMovie(startDate, endDate);
+
+        if (result.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Object[] mostBooked = result.get(0);
+        Map<String, Object> response = new HashMap<>();
+        response.put("movieId", mostBooked[0]);
+        response.put("movieName", mostBooked[1]);
+        response.put("totalBookings", mostBooked[2]);
+
+        return response;
+    }
+
+    @Override
+    public double calculateMonthlyRevenue(int month, int year) {
+        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endDate = startDate.plusMonths(1).minusSeconds(1);
+
+        Double totalRevenue = bookingRepository.calculateTotalRevenue(startDate, endDate);
+        return totalRevenue != null ? totalRevenue : 0.0;
+    }
+
+    @Override
+    public Map<String, Object> getMostBookedCinema(int month, int year) {
+        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endDate = startDate.plusMonths(1).minusSeconds(1);
+
+        List<Object[]> result = bookingRepository.findMostBookedCinema(startDate, endDate);
+
+        if (result.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Object[] mostBooked = result.get(0);
+        Map<String, Object> response = new HashMap<>();
+        response.put("cinemaId", mostBooked[0]);
+        response.put("cinemaName", mostBooked[1]);
+        response.put("totalBookings", mostBooked[2]);
+
+        return response;
+    }
+
+    @Override
+    public Map<String, Object> getSecondMostBookedMovie(int month, int year) {
+        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endDate = startDate.plusMonths(1).minusSeconds(1);
+
+        List<Object[]> result = bookingRepository.findSecondMostBookedMovie(startDate, endDate);
+
+        if (result.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Object[] secondMostBooked = result.get(0);
+        Map<String, Object> response = new HashMap<>();
+        response.put("movieId", secondMostBooked[0]);
+        response.put("movieName", secondMostBooked[1]);
+        response.put("totalBookings", secondMostBooked[2]);
+
+        return response;
+    }
+
+    @Override
+    public Map<String, Object> getThirdMostBookedMovie(int month, int year) {
+        LocalDateTime startDate = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endDate = startDate.plusMonths(1).minusSeconds(1);
+
+        List<Object[]> result = bookingRepository.findThirdMostBookedMovie(startDate, endDate);
+
+        if (result.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Object[] thirdMostBooked = result.get(0);
+        Map<String, Object> response = new HashMap<>();
+        response.put("movieId", thirdMostBooked[0]);
+        response.put("movieName", thirdMostBooked[1]);
+        response.put("totalBookings", thirdMostBooked[2]);
+
+        return response;
     }
 }

@@ -46,7 +46,6 @@ public class UserController {
             @Valid @RequestBody UserLoginDTO userLoginDTO,
             BindingResult result
     ) {
-        // Kiểm tra thông tin đăng nhập và sinh token
         try {
             if (result.hasErrors()) {
                 List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();

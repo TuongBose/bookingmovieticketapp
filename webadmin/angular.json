@@ -37,9 +37,12 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/chart.js/dist/chart.umd.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -97,10 +100,15 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/chart.js/dist/chart.umd.js"
+            ]
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "10e47c5a-83ef-4f89-80c8-f154d7df04b9"
   }
 }
