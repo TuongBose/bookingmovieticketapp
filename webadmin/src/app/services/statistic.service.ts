@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry, timeout } from 'rxjs/operators';
+import { Environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StatisticService {
-  private apiUrl = 'http://localhost:8080/api/v1/statistics'; 
+  private apiUrl = `${Environment.apiBaseUrl}/statistics`; 
 
   constructor(private http: HttpClient) {}
 

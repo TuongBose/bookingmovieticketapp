@@ -31,6 +31,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/users/login").permitAll()
                         .requestMatchers("/api/v1/statistics/**").permitAll()
+                        .requestMatchers("/api/v1/movies/**").permitAll()
+                        .requestMatchers("/api/v1/cinemas/**").permitAll()
                         .anyRequest().authenticated()
                 );
         return httpSecurity.build();

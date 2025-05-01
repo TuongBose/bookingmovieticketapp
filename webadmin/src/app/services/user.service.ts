@@ -3,17 +3,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { LoginDTO } from '../dtos/login.dto';
+import { Environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8080/api/v1';
-
   constructor(private http: HttpClient) {}
 
   login(loginDTO: LoginDTO): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/users/login`, loginDTO);
+    return this.http.post<any>(`${Environment.apiBaseUrl}/users/login`, loginDTO);
   }
 
   setUser(user: any): void {
