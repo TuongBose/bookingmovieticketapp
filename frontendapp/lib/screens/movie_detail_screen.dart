@@ -768,7 +768,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                         return const SizedBox();
                       }
 
-                      final showtimes = showtimeSnapshot.data!;
+                      final showtimes = showtimeSnapshot.data!.where((show) =>show.isactive).toList();
+
+                      if(showtimes.isEmpty){
+                        return const SizedBox();
+                      }
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

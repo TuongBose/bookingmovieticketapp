@@ -5,6 +5,7 @@ class Showtime {
   final DateTime showDate;
   final DateTime startTime;
   final int price;
+  final bool isactive;
 
   Showtime({
     required this.id,
@@ -13,6 +14,7 @@ class Showtime {
     required this.showDate,
     required this.startTime,
     required this.price,
+    required this.isactive,
   });
 
   factory Showtime.fromJson(Map<String, dynamic> json) => Showtime(
@@ -22,5 +24,6 @@ class Showtime {
     showDate: DateTime.parse(json['showdate']),
     startTime: DateTime.parse(json['starttime']),
     price: json['price'],
+    isactive: json['isactive'],
   );
 } 

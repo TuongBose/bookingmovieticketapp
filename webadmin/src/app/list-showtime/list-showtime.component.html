@@ -23,9 +23,9 @@
         <div class="row g-3">
             <div class="col-md-3">
                 <label for="cinemaId" class="form-label">Chọn rạp</label>
-                <select class="form-control" id="cinemaId" [(ngModel)]="selectedCinemaId">
-                    <option [value]="null" disabled>Chọn rạp</option>
-                    <option *ngFor="let cinema of cinemas" [value]="cinema.id">
+                <select class="form-control" id="cinemaId"
+                        [(ngModel)]="selectedCinemaId"
+                        (ngModelChange)="selectedCinemaId = $event ? +$event : null"> <option [ngValue]="null" disabled>Chọn rạp</option> <option *ngFor="let cinema of cinemas" [ngValue]="cinema.id">
                         {{ cinema.name }} ({{ cinema.city }})
                     </option>
                 </select>
@@ -36,17 +36,17 @@
             </div>
             <div class="col-md-3">
                 <label for="movieId" class="form-label">Chọn phim (tùy chọn)</label>
-                <select class="form-control" id="movieId" [(ngModel)]="selectedMovieId" (change)="filterAndGroupShowtimes()">
-                    <option [value]="null">Tất cả phim</option>
-                    <option *ngFor="let movie of movies" [value]="movie.id">
-                        {{ movie.name }}
+                <select class="form-control" id="movieId"
+                        [(ngModel)]="selectedMovieId"
+                         (ngModelChange)="selectedMovieId = $event ? +$event : null"> <option [ngValue]="null">Tất cả phim</option> <option *ngFor="let movie of movies" [ngValue]="movie.id"> {{ movie.name }}
                     </option>
                 </select>
             </div>
             <div class="col-md-3 d-flex align-items-end gap-2">
                 <div class="form-check">
-                    <input type="checkbox" class="form-check-input" id="showOnlyActive" [(ngModel)]="showOnlyActive" (change)="filterAndGroupShowtimes()">
-                    <label class="form-check-label" for="showOnlyActive">Chỉ hiển thị suất chiếu hoạt động</label>
+                    <input type="checkbox" class="form-check-input" id="showOnlyActive"
+                           [(ngModel)]="showOnlyActive">
+                            <label class="form-check-label" for="showOnlyActive">Chỉ hiển thị suất chiếu hoạt động</label>
                 </div>
                 <button class="btn btn-primary w-50" (click)="fetchShowtimes()">Tìm kiếm</button>
                 <button class="btn btn-secondary w-50" (click)="resetFilters()">Xóa</button>
@@ -55,10 +55,13 @@
     </div>
 
     <!-- Danh sách suất chiếu -->
-    <div class="showtime-list" *ngIf="!isLoading && !errorMessage">
+    <div class="showtime-list" *ngIf="!isLoading">
         <div *ngFor="let group of showtimesByMovie">
-            <h5 class="movie-header">{{ group.movieName }}</h5>
-            <hr class="movie-divider">
+            <hr class="movie-divider">            
+            <div class="movie-header d-flex align-items-center mb-3">
+                <img [src]="group.posterURL" alt="{{ group.movieName }}" class="movie-poster me-3" />
+                <h5>{{ group.movieName }}</h5>
+            </div>
             <div class="showtime-row">
                 <div class="showtime-card" *ngFor="let showtime of group.showtimes">
                     <div class="card shadow-sm">
@@ -87,7 +90,7 @@
                 </div>
             </div>
         </div>
-        <div *ngIf="!showtimesByMovie.length && !isLoading" class="text-center text-muted">
+        <div *ngIf="!showtimesByMovie.length && !isLoading && !errorMessage" class="text-center text-muted">
             Không có suất chiếu nào.
         </div>
     </div>

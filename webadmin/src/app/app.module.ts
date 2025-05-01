@@ -15,6 +15,9 @@ import { ListAdminComponent } from './list-admin/list-admin.component';
 import { ListShowtimeComponent } from './list-showtime/list-showtime.component';
 import { StatisticsComponent } from './statistics/statistics.component';
 import { ListBookingComponent } from './list-booking/list-booking.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { ShowtimeDetailDialogComponent } from './list-showtime/showtime-detail-dialog.component';
 
 @NgModule({
   declarations: [
@@ -27,14 +30,17 @@ import { ListBookingComponent } from './list-booking/list-booking.component';
     ListAdminComponent,
     ListShowtimeComponent,
     StatisticsComponent,
-    ListBookingComponent
+    ListBookingComponent,
+    ShowtimeDetailDialogComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
     AppRoutingModule,
-    NgChartsModule
+    NgChartsModule,
+    MatDialogModule,
+    MatButtonModule
   ],
   providers: [],
   bootstrap: [AppComponent]

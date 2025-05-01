@@ -1,8 +1,8 @@
-export class MovieDTO{
+export class MovieDTO {
   id: number;
-    name: string;
-    posterurl: string;
-    releasedate: string;
+  name: string;
+  posterurl: string;
+  releasedate: string;
   voteaverage: number;
 
   constructor(data: any) {

@@ -51,6 +51,18 @@ export class MovieService {
     );
   }
 
+  getMovieById(id: number): Observable<MovieDTO> {
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json');
+    return this.http.get<any>(`${Environment.apiBaseUrl}/movies/${id}`, { headers: headers, withCredentials: true }).pipe(
+      timeout(5000),
+      retry(1),
+      map(response => this.mapToMovies([response])[0]), // Chuyển đổi thành MovieDTO
+      catchError(this.handleError)
+    );
+  }
+
   private mapToMovies(apiMovies: any[]): MovieDTO[] {
     return apiMovies.map(movie => ({
       id: movie.id,

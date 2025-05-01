@@ -88,6 +88,12 @@
     font-weight: bold;
 }
 
+.movie-poster {
+    width: 15%;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
 /* Responsive cho màn hình nhỏ */
 @media (max-width: 768px) {
     .container {
