@@ -1,1 +1,94 @@
-<p>list-showtime works!</p>
+<div class="container mt-4">
+    <h3 class="text-center mb-4">Quản lý suất chiếu</h3>
+
+    <!-- Spinner khi đang tải -->
+    <div *ngIf="isLoading" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+    </div>
+
+    <!-- Thông báo thành công -->
+    <div *ngIf="successMessage" class="alert alert-success text-center">
+        {{ successMessage }}
+    </div>
+
+    <!-- Thông báo lỗi -->
+    <div *ngIf="errorMessage" class="alert alert-danger text-center">
+        {{ errorMessage }}
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="filter-section mb-4" *ngIf="!isLoading">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="cinemaId" class="form-label">Chọn rạp</label>
+                <select class="form-control" id="cinemaId" [(ngModel)]="selectedCinemaId">
+                    <option [value]="null" disabled>Chọn rạp</option>
+                    <option *ngFor="let cinema of cinemas" [value]="cinema.id">
+                        {{ cinema.name }} ({{ cinema.city }})
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date" class="form-label">Chọn ngày</label>
+                <input type="date" class="form-control" id="date" [(ngModel)]="selectedDate">
+            </div>
+            <div class="col-md-3">
+                <label for="movieId" class="form-label">Chọn phim (tùy chọn)</label>
+                <select class="form-control" id="movieId" [(ngModel)]="selectedMovieId" (change)="filterAndGroupShowtimes()">
+                    <option [value]="null">Tất cả phim</option>
+                    <option *ngFor="let movie of movies" [value]="movie.id">
+                        {{ movie.name }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="showOnlyActive" [(ngModel)]="showOnlyActive" (change)="filterAndGroupShowtimes()">
+                    <label class="form-check-label" for="showOnlyActive">Chỉ hiển thị suất chiếu hoạt động</label>
+                </div>
+                <button class="btn btn-primary w-50" (click)="fetchShowtimes()">Tìm kiếm</button>
+                <button class="btn btn-secondary w-50" (click)="resetFilters()">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách suất chiếu -->
+    <div class="showtime-list" *ngIf="!isLoading && !errorMessage">
+        <div *ngFor="let group of showtimesByMovie">
+            <h5 class="movie-header">{{ group.movieName }}</h5>
+            <hr class="movie-divider">
+            <div class="showtime-row">
+                <div class="showtime-card" *ngFor="let showtime of group.showtimes">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Suất chiếu #{{ showtime.id }}</h5>
+                            <p class="card-text"><strong>Phim:</strong> {{ group.movieName }}</p>
+                            <p class="card-text"><strong>Phòng:</strong> {{ showtime.roomId }}</p>
+                            <p class="card-text"><strong>Ngày chiếu:</strong> {{ showtime.showdate | date:'dd/MM/yyyy' }}</p>
+                            <p class="card-text"><strong>Giờ bắt đầu:</strong> {{ showtime.starttime | date:'HH:mm' }}</p>
+                            <p class="card-text"><strong>Giá vé:</strong> {{ showtime.price | currency:'VND' }}</p>
+                            <p class="card-text"><strong>Số ghế đã đặt:</strong> {{ bookingsCountMap.get(showtime.id) || 0 }}</p>
+                            <p class="card-text"><strong>Trạng thái: </strong> 
+                                <span [ngClass]="{
+                                    'status-active': showtime.isactive,
+                                    'status-inactive': !showtime.isactive
+                                }">{{ showtime.isactive ? 'Hoạt động' : 'Không hoạt động' }}</span>
+                            </p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-info btn-sm" (click)="viewDetails(showtime.id)">Xem chi tiết</button>
+                                <button class="btn btn-sm" [ngClass]="showtime.isactive ? 'btn-danger' : 'btn-success'" (click)="toggleShowtimeStatus(showtime.id, showtime.isactive)">
+                                    {{ showtime.isactive ? 'Tắt' : 'Bật' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="!showtimesByMovie.length && !isLoading" class="text-center text-muted">
+            Không có suất chiếu nào.
+        </div>
+    </div>
+</div>

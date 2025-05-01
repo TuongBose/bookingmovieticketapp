@@ -18,4 +18,5 @@ public class ShowTimeResponse {
     private LocalDate showdate;
     private LocalDateTime starttime;
     private int price;
+    private boolean isactive;
 }

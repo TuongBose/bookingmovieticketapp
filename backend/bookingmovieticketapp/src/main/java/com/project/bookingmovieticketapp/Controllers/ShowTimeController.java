@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/showtimes")
@@ -44,6 +45,29 @@ public class ShowTimeController {
     {
         try{
             return ResponseEntity.ok(showTimeService.getShowTimeById(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateShowTimeStatus(
+            @PathVariable int id,
+            @RequestBody Map<String, Boolean> body) {
+        try {
+            boolean isActive = body.get("isActive");
+            showTimeService.updateShowTimeStatus(id, isActive);
+            return ResponseEntity.ok(Map.of("message", "Cập nhật trạng thái suất chiếu thành công."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/bookings-count")
+    public ResponseEntity<?> getBookingsCountForShowTime(@PathVariable int id) {
+        try {
+            long bookingsCount = showTimeService.getBookingsCountForShowTime(id);
+            return ResponseEntity.ok(bookingsCount);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

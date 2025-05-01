@@ -3,6 +3,7 @@ package com.project.bookingmovieticketapp.Controllers;
 import com.project.bookingmovieticketapp.DTOs.BookingDTO;
 import com.project.bookingmovieticketapp.Models.Booking;
 import com.project.bookingmovieticketapp.Models.BookingDetail;
+import com.project.bookingmovieticketapp.Responses.BookingResponse;
 import com.project.bookingmovieticketapp.Services.Booking.BookingService;
 import com.project.bookingmovieticketapp.Services.BookingDetail.BookingDetailService;
 import jakarta.validation.Valid;
@@ -61,6 +62,15 @@ public class BookingController {
     public ResponseEntity<?> getBookingByUserId(@Valid @PathVariable int userId) {
         try {
             return ResponseEntity.ok(bookingService.getBookingByUserId(userId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("")
+    public ResponseEntity<?> getAllBooking() {
+        try {
+            return ResponseEntity.ok(bookingService.getAllBooking());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

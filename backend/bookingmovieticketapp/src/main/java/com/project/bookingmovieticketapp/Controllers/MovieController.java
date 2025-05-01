@@ -43,4 +43,7 @@ public class MovieController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("")
+    public ResponseEntity<List<Movie>> getAllMovie(){return ResponseEntity.ok(movieService.getAllMovie());}
 }

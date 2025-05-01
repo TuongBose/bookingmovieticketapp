@@ -33,6 +33,12 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/statistics/**").permitAll()
                         .requestMatchers("/api/v1/movies/**").permitAll()
                         .requestMatchers("/api/v1/cinemas/**").permitAll()
+                        .requestMatchers("/api/v1/bookings/**").permitAll()
+                        .requestMatchers("/api/v1/bookingdetails/**").permitAll()
+                        .requestMatchers("/api/v1/casts/**").permitAll()
+                        .requestMatchers("/api/v1/rooms/**").permitAll()
+                        .requestMatchers("/api/v1/seats/**").permitAll()
+                        .requestMatchers("/api/v1/showtimes/**").permitAll()
                         .anyRequest().authenticated()
                 );
         return httpSecurity.build();

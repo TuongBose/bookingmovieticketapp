@@ -9,6 +9,7 @@ import com.project.bookingmovieticketapp.Repositories.BookingRepository;
 import com.project.bookingmovieticketapp.Repositories.ShowTimeRepository;
 import com.project.bookingmovieticketapp.Repositories.UserRepository;
 import com.project.bookingmovieticketapp.Responses.BookingResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,21 @@ public class BookingService implements IBookingService {
     private final BookingRepository bookingRepository;
     private final ShowTimeRepository showTimeRepository;
     private final UserRepository userRepository;
+
+    @PostConstruct
+    public void updateBookingStatus() {
+        List<Booking> bookings = bookingRepository.findAll();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Booking booking : bookings) {
+            ShowTime showTime = booking.getShowTime();
+            if (showTime != null && showTime.getStarttime() != null) {
+                boolean isActive = now.isBefore(showTime.getStarttime());
+                booking.setIsactive(isActive);
+                bookingRepository.save(booking);
+            }
+        }
+    }
 
     @Override
     public Booking createBooking(BookingDTO bookingDTO) throws Exception {
@@ -89,6 +105,36 @@ public class BookingService implements IBookingService {
         if(bookingList.isEmpty())
         {
            throw new RuntimeException("Chưa có giao dịch nào");
+        }
+        else
+        {
+            for(Booking booking:bookingList)
+            {
+                BookingResponse newBookingResponse = BookingResponse
+                        .builder()
+                        .id(booking.getId())
+                        .userId(booking.getUser().getId())
+                        .showTimeId(booking.getShowTime().getId())
+                        .bookingdate(booking.getBookingdate())
+                        .totalprice(booking.getTotalprice())
+                        .paymentmethod(booking.getPaymentmethod())
+                        .paymentstatus(booking.getPaymentstatus())
+                        .isactive(booking.isIsactive())
+                        .build();
+                bookingResponseList.add(newBookingResponse);
+            }
+            return bookingResponseList;
+        }
+    }
+
+    @Override
+    public List<BookingResponse> getAllBooking() throws Exception{
+        List<Booking> bookingList = bookingRepository.findAll();
+
+        List<BookingResponse> bookingResponseList = new ArrayList<>();
+        if(bookingList.isEmpty())
+        {
+            throw new RuntimeException("Chưa có giao dịch nào");
         }
         else
         {

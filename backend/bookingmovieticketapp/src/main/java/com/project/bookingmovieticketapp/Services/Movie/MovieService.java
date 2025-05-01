@@ -327,8 +327,8 @@ public class MovieService implements IMovieService {
     }
 
     @Override
-    public Page<Movie> getAllMovie(PageRequest pageRequest) {
-        return movieRepository.findAll(pageRequest);
+    public List<Movie> getAllMovie() {
+        return movieRepository.findAll();
     }
 
     @Override

@@ -60,7 +60,8 @@ CREATE TABLE showtimes (
     roomid INT NOT NULL,
     showdate DATE NOT NULL,
     starttime DATETIME NOT NULL,
-    price INT NOT NULL,
+    price INT NOT NULL,    
+    isactive BIT DEFAULT 1,
     FOREIGN KEY (movieid) REFERENCES movies(id) ON DELETE CASCADE,
     FOREIGN KEY (roomid) REFERENCES rooms(id) ON DELETE CASCADE
 );
@@ -172,7 +173,7 @@ VALUES
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
 VALUES 
-(1, 148, '2025-04-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 0);
+(2, 148, '2025-04-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 0);
 
 INSERT INTO bookingdetails (bookingid, seatid, price)
 VALUES 

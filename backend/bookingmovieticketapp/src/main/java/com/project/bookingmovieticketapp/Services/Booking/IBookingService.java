@@ -11,6 +11,7 @@ public interface IBookingService {
     Booking createBooking(BookingDTO bookingDTO) throws Exception;
     List<BookingResponse> getBookingByShowTimeId(int id) throws Exception;
     List<BookingResponse> getBookingByUserId(int id) throws Exception;
+    List<BookingResponse> getAllBooking() throws Exception;
     Booking getBookingById(int id) throws Exception;
     Booking updateBooking(int id, BookingDTO bookingDTO) throws Exception;
     void deleteBooking(int id) throws Exception;

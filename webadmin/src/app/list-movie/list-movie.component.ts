@@ -1,7 +1,7 @@
 // src/app/list-movie/list-movie.component.ts
 import { Component, OnInit } from '@angular/core';
 import { MovieService } from '../services/movie.service';
-import { Movie } from '../dtos/movie.dto';
+import { MovieDTO } from '../dtos/movie.dto';
 
 @Component({
   selector: 'app-list-movie',
@@ -10,8 +10,8 @@ import { Movie } from '../dtos/movie.dto';
   styleUrls: ['./list-movie.component.css'],
 })
 export class ListMovieComponent implements OnInit {
-  nowShowingMovies: Movie[] = [];
-  comingSoonMovies: Movie[] = [];
+  nowShowingMovies: MovieDTO[] = [];
+  comingSoonMovies: MovieDTO[] = [];
   activeTab: string = 'nowShowing';
   errorMessage: string = '';
 

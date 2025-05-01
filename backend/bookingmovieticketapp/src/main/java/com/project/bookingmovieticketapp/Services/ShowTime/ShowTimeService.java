@@ -1,13 +1,7 @@
 package com.project.bookingmovieticketapp.Services.ShowTime;
 
-import com.project.bookingmovieticketapp.Models.Cinema;
-import com.project.bookingmovieticketapp.Models.Movie;
-import com.project.bookingmovieticketapp.Models.Room;
-import com.project.bookingmovieticketapp.Models.ShowTime;
-import com.project.bookingmovieticketapp.Repositories.CinemaRepository;
-import com.project.bookingmovieticketapp.Repositories.MovieRepository;
-import com.project.bookingmovieticketapp.Repositories.RoomRepository;
-import com.project.bookingmovieticketapp.Repositories.ShowTimeRepository;
+import com.project.bookingmovieticketapp.Models.*;
+import com.project.bookingmovieticketapp.Repositories.*;
 import com.project.bookingmovieticketapp.Responses.ShowTimeResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +17,20 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-public class ShowTimeService implements IShowTimeService{
+public class ShowTimeService implements IShowTimeService {
     private final ShowTimeRepository showTimeRepository;
     private final RoomRepository roomRepository;
     private final CinemaRepository cinemaRepository;
     private final MovieRepository movieRepository;
+    private final BookingRepository bookingRepository;
+    private final BookingDetailRepository bookingDetailRepository;
 
     @PostConstruct
-    private void init(){
+    private void init() {
         generateShowtimesForAllRooms();
     }
 
-    private void generateShowtimesForAllRooms(){
+    private void generateShowtimesForAllRooms() {
 // Lấy tất cả phòng và phim
         List<Room> rooms = roomRepository.findAll();
         List<Movie> movies = movieRepository.findAll();
@@ -51,7 +47,7 @@ public class ShowTimeService implements IShowTimeService{
 
         // Các khung giờ cố định: 10:00, 13:00, 16:00, 19:00
         LocalTime[] timeSlots = {
-                LocalTime.of(7,0),
+                LocalTime.of(7, 0),
                 LocalTime.of(10, 0),  // 10:00
                 LocalTime.of(13, 0),  // 13:00
                 LocalTime.of(16, 0),  // 16:00
@@ -103,6 +99,7 @@ public class ShowTimeService implements IShowTimeService{
                             .showdate(currentDate)
                             .starttime(startTime)
                             .price(price)
+                            .isactive(true)
                             .build();
 
                     showTimeRepository.save(showtime);
@@ -115,12 +112,12 @@ public class ShowTimeService implements IShowTimeService{
     }
 
     @Override
-    public List<ShowTimeResponse> getShowTimeByMovieIdAndCinemaIdAndDate(int movieId, int cinemaId, LocalDate date) throws Exception{
+    public List<ShowTimeResponse> getShowTimeByMovieIdAndCinemaIdAndDate(int movieId, int cinemaId, LocalDate date) throws Exception {
         Cinema existingCinema = cinemaRepository.findById(cinemaId)
-                .orElseThrow(()-> new RuntimeException("Khong tim thay CinemaId"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay CinemaId"));
 
         Movie existingMovie = movieRepository.findById(movieId)
-                .orElseThrow(()->new RuntimeException("Khong tim thay MovieId"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay MovieId"));
 
         List<Room> rooms = roomRepository.findByCinema(existingCinema);
         List<Integer> roomIds = rooms.stream().map(Room::getId).toList();
@@ -128,8 +125,7 @@ public class ShowTimeService implements IShowTimeService{
         List<ShowTime> showTimeList = showTimeRepository.findByMovieAndRoomIdInAndShowdate(existingMovie, roomIds, date);
 
         List<ShowTimeResponse> showTimeResponseList = new ArrayList<>();
-        for(ShowTime showTime : showTimeList)
-        {
+        for (ShowTime showTime : showTimeList) {
             ShowTimeResponse newShowTimeResponse = ShowTimeResponse
                     .builder()
                     .id(showTime.getId())
@@ -138,6 +134,7 @@ public class ShowTimeService implements IShowTimeService{
                     .showdate(showTime.getShowdate())
                     .starttime(showTime.getStarttime())
                     .price(showTime.getPrice())
+                    .isactive(showTime.isIsactive())
                     .build();
 
             showTimeResponseList.add(newShowTimeResponse);
@@ -147,9 +144,9 @@ public class ShowTimeService implements IShowTimeService{
     }
 
     @Override
-    public ShowTimeResponse getShowTimeById(int id) throws Exception{
-        ShowTime existingShowTime =  showTimeRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("Khong tim thay ShowTimeId"));
+    public ShowTimeResponse getShowTimeById(int id) throws Exception {
+        ShowTime existingShowTime = showTimeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay ShowTimeId"));
 
         return ShowTimeResponse
                 .builder()
@@ -159,7 +156,25 @@ public class ShowTimeService implements IShowTimeService{
                 .showdate(existingShowTime.getShowdate())
                 .starttime(existingShowTime.getStarttime())
                 .price(existingShowTime.getPrice())
+                .isactive(existingShowTime.isIsactive())
                 .build();
+    }
+
+    @Override
+    public void updateShowTimeStatus(int id, boolean isActive) {
+        ShowTime showTime = showTimeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Suất chiếu không tồn tại."));
+        showTime.setIsactive(isActive);
+        showTimeRepository.save(showTime);
+    }
+
+    @Override
+    public long getBookingsCountForShowTime(int showTimeId) {
+        List<Booking> bookings = bookingRepository.findByShowTimeId(showTimeId);
+        return bookings.stream()
+                .map(booking -> bookingDetailRepository.findByBookingId(booking.getId()))
+                .flatMap(List::stream)
+                .count();
     }
 
 
@@ -167,9 +182,8 @@ public class ShowTimeService implements IShowTimeService{
         List<ShowTime> showTimeList = showTimeRepository.findByCinemaIdAndShowdate(cinemaId, showDate);
 
         List<ShowTimeResponse> showTimeResponseList = new ArrayList<>();
-        if(!showTimeList.isEmpty())
-            for(ShowTime showTime:showTimeList)
-            {
+        if (!showTimeList.isEmpty())
+            for (ShowTime showTime : showTimeList) {
                 ShowTimeResponse newShowTimeResponse = ShowTimeResponse
                         .builder()
                         .id(showTime.getId())
@@ -178,6 +192,7 @@ public class ShowTimeService implements IShowTimeService{
                         .showdate(showTime.getShowdate())
                         .starttime(showTime.getStarttime())
                         .price(showTime.getPrice())
+                        .isactive(showTime.isIsactive())
                         .build();
 
                 showTimeResponseList.add(newShowTimeResponse);

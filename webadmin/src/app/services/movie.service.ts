@@ -4,7 +4,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, throwError } from 'rxjs';
 import { catchError, map, retry, timeout } from 'rxjs/operators';
 import { Environment } from '../environments/environment';
-import { Movie } from '../dtos/movie.dto';
+import { MovieDTO } from '../dtos/movie.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +15,7 @@ export class MovieService {
 
   constructor(private http: HttpClient) {}
 
-  getMovieNowPlaying(): Observable<Movie[]> {
+  getMovieNowPlaying(): Observable<MovieDTO[]> {
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json');
@@ -27,7 +27,7 @@ export class MovieService {
     );
   }
 
-  getMovieUpComing(): Observable<Movie[]> {
+  getMovieUpComing(): Observable<MovieDTO[]> {
     const headers = new HttpHeaders()
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json');
@@ -39,8 +39,21 @@ export class MovieService {
     );
   }
 
-  private mapToMovies(apiMovies: any[]): Movie[] {
+  getAllMovie(): Observable<MovieDTO[]> {
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json');
+    return this.http.get<any>(`${Environment.apiBaseUrl}/movies`, { headers: headers, withCredentials: true }).pipe(
+      timeout(5000),
+      retry(1),
+      map(response => this.mapToMovies(response)), // Backend đã trả về danh sách phim, không cần response.results
+      catchError(this.handleError)
+    );
+  }
+
+  private mapToMovies(apiMovies: any[]): MovieDTO[] {
     return apiMovies.map(movie => ({
+      id: movie.id,
       name: movie.name,
       posterurl: movie.posterurl,
       releasedate: movie.releasedate,

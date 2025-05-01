@@ -1,1 +1,51 @@
-<p>list-cinema works!</p>
+<!-- src/app/list-cinema/list-cinema.component.html -->
+<div class="container mt-4">
+    <h3 class="text-center mb-4">Danh sách rạp chiếu phim</h3>
+  
+    <!-- Spinner khi đang tải -->
+    <div *ngIf="!cinemas.length && !errorMessage" class="text-center">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+      </div>
+    </div>
+  
+    <!-- Thông báo lỗi -->
+    <div *ngIf="errorMessage" class="alert alert-danger text-center">
+      {{ errorMessage }}
+    </div>
+  
+    <!-- Dropdown chọn thành phố -->
+    <div class="mb-4">
+      <label for="citySelect" class="form-label">Chọn thành phố:</label>
+      <select id="citySelect" class="form-select" [(ngModel)]="selectedCity" (change)="filterCinemas()">
+        <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+      </select>
+    </div>
+  
+    <!-- Danh sách rạp chiếu phim -->
+    <div class="movie-list-vertical">
+      <div class="cinema-card" *ngFor="let cinema of filteredCinemas">
+        <div class="card shadow-sm d-flex flex-row">
+          <img
+            [src]="cinema.imagename ? 'assets/images/' + cinema.imagename : 'assets/images/no_image.jpg'"
+            class="card-img-left"
+            alt="{{ cinema.name }}"
+            style="width: 150px; height: 225px; object-fit: cover;"
+          />
+          <div class="card-body">
+            <h5 class="card-title">{{ cinema.name }}</h5>
+            <p class="card-text text-muted">Thành phố: {{ cinema.city }}</p>
+            <p class="card-text">Địa chỉ: {{ cinema.address }}</p>
+            <p class="card-text">Số điện thoại: {{ cinema.phonenumber }}</p>
+            <p class="card-text">Tọa độ: {{ cinema.coordinates }}</p>
+            <p class="card-text">Số phòng chiếu tối đa: {{ cinema.maxroom }}</p>
+            <a href="#" class="btn btn-primary">Xem chi tiết</a>
+          </div>
+        </div>
+      </div>
+      <!-- Hiển thị thông báo nếu không có rạp -->
+      <div *ngIf="!filteredCinemas.length" class="text-center text-muted">
+        Hiện không có rạp chiếu phim nào.
+      </div>
+    </div>
+  </div>

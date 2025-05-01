@@ -13,7 +13,7 @@ import java.util.Map;
 public interface IMovieService {
     List<Movie> getNowPlaying();
     List<Movie> getUpComing();
-    Page<Movie> getAllMovie(PageRequest pageRequest);
+    List<Movie> getAllMovie();
     boolean existsByName(String name);
     Movie getMovieById(int id) throws Exception;
 }

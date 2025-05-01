@@ -34,4 +34,6 @@ public class ShowTime {
 
     @Column(name = "price",nullable = false)
     private int price;
+
+    private boolean isactive;
 }
