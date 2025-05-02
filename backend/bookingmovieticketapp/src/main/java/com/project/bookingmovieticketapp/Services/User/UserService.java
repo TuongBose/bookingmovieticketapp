@@ -6,6 +6,7 @@ import com.project.bookingmovieticketapp.Repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -44,5 +45,15 @@ public class UserService implements IUserService {
         }
 
         return existingUser;
+    }
+
+    @Override
+    public List<User> getAllUserCustomer() {
+        return userRepository.findByRolenameFalse();
+    }
+
+    @Override
+    public List<User> getAllUserAdmin() {
+        return userRepository.findByRolenameTrue();
     }
 }

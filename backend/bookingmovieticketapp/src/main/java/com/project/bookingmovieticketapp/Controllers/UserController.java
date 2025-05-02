@@ -5,6 +5,7 @@ import com.project.bookingmovieticketapp.DTOs.UserLoginDTO;
 import com.project.bookingmovieticketapp.Models.User;
 import com.project.bookingmovieticketapp.Services.User.UserService;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,5 +56,15 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/admin")
+    public ResponseEntity<?> getAllUserAdmin(){
+        return ResponseEntity.ok(userService.getAllUserAdmin());
+    }
+
+    @GetMapping("/customer")
+    public ResponseEntity<?> getAllUserCustomer(){
+        return ResponseEntity.ok(userService.getAllUserCustomer());
     }
 }
