@@ -92,4 +92,9 @@ public class CinemaService implements ICinemaService {
     public Cinema getCinemaById(int id) throws Exception {
         return cinemaRepository.findById(id).orElseThrow(()->new RuntimeException("Khong tim thay CinemaId"));
     }
+
+    @Override
+    public void saveCinema(Cinema cinema) {
+        cinemaRepository.save(cinema);
+    }
 }

@@ -7,8 +7,9 @@ export class UserDTO {
     address: string;
     dateofbirth: Date;
     createdat: Date;
-    isactive: Date;
-    rolename: boolean
+    isactive: boolean;
+    rolename: boolean;
+    imagename: string;
 
     constructor(data: any) {
         this.id = data.id;
@@ -20,6 +21,7 @@ export class UserDTO {
         this.dateofbirth = data.dateofbirth;
         this.createdat = data.createdat;
         this.isactive = data.isactive;
-        this.rolename = data.rolename
+        this.rolename = data.rolename;
+        this.imagename = data.imagename
     }
 }

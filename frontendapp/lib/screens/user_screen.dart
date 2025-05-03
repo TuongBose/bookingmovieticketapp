@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:frontendapp/models/user.dart';
 import 'package:frontendapp/services/BookingService.dart';
@@ -5,8 +7,11 @@ import 'package:frontendapp/services/RoomService.dart';
 import 'package:frontendapp/services/ShowTimeService.dart';
 import 'package:frontendapp/services/MovieService.dart';
 import 'package:frontendapp/services/CinemaService.dart';
-import 'package:frontendapp/config.dart';
+import 'package:frontendapp/services/UserService.dart';
+import 'package:frontendapp/app_config.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../models/booking.dart';
 import '../models/showtime.dart';
 import '../models/movie.dart';
@@ -14,7 +19,6 @@ import '../models/room.dart';
 import '../models/cinema.dart';
 import 'booking_detail_screen.dart';
 
-// Định nghĩa class BookingDetails (đổi tên từ BookingDetail để đồng bộ)
 class BookingDetails {
   final Booking booking;
   final Showtime? showtime;
@@ -44,15 +48,19 @@ class _UserScreenState extends State<UserScreen> {
   User? _user;
   int? _totalSpending;
   bool _isLoading = true;
+  bool _isUploading = false;
   String? _errorMessage;
   int _selectedTab = 0;
   late Future<List<BookingDetails>> _bookingDetailsFuture;
+  XFile? _selectedImage;
+  String _cacheKey = DateTime.now().millisecondsSinceEpoch.toString();
 
   final BookingService _bookingService = BookingService();
   final ShowTimeService _showTimeService = ShowTimeService();
   final MovieService _movieService = MovieService();
   final CinemaService _cinemaService = CinemaService();
   final RoomService _roomService = RoomService();
+  final UserService _userService = UserService();
   final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
   final dateFormatter = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN');
   final monthYearFormatter = DateFormat('MMMM, yyyy', 'vi_VN');
@@ -66,7 +74,7 @@ class _UserScreenState extends State<UserScreen> {
 
   Future<void> _fetchUser() async {
     try {
-      final user = Config.currentUser;
+      final user = AppConfig.currentUser;
       if (user == null) {
         throw Exception(
           'Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.',
@@ -75,7 +83,6 @@ class _UserScreenState extends State<UserScreen> {
       final totalSpending = await _bookingService.sumTotalPriceByUserId(
         user.id ?? 0,
       );
-      // Lấy danh sách booking và thông tin chi tiết
       _bookingDetailsFuture = _fetchBookingDetails(user.id ?? 0);
       if (mounted) {
         setState(() {
@@ -95,40 +102,40 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Future<List<BookingDetails>> _fetchBookingDetails(int userId) async {
-    // Lấy danh sách booking
     final bookings = await _bookingService.getBookingByUserId(userId);
     List<BookingDetails> bookingDetailsList = [];
 
-    // Lấy thông tin chi tiết cho từng booking
     for (var booking in bookings) {
-      // Lấy Showtime
-      final showtime = await _showTimeService.getShowtimeById(booking.showtimeId,);
+      final showtime = await _showTimeService.getShowtimeById(
+        booking.showtimeId,
+      );
       Movie? movie;
       Room? room;
       Cinema? cinema;
 
       if (showtime != null) {
-        // Lấy Movie
         movie = await _movieService.getMovieById(showtime.movieId);
-        // Lấy Room
         room = await _roomService.getRoomById(showtime.roomId);
-        // Lấy Cinema từ Room
         cinema = await _cinemaService.getCinemaById(room.cinemaId);
       }
 
       bool isActive = booking.isActive;
-      if (!booking.isActive && showtime != null) { // Chỉ tính toán nếu backend không cung cấp isActive
+      if (!booking.isActive && showtime != null) {
         final currentTime = DateTime.now();
         final showtimeStart = showtime.startTime;
         try {
           isActive = currentTime.isBefore(showtimeStart);
-          print('Booking ID: ${booking.id}, Showtime: ${showtimeStart}, Current Time: ${currentTime}, isActive: $isActive');
+          print(
+            'Booking ID: ${booking.id}, Showtime: ${showtimeStart}, Current Time: ${currentTime}, isActive: $isActive',
+          );
         } catch (e) {
           print('Error calculating isActive for booking ${booking.id}: $e');
           isActive = false;
         }
       } else if (showtime == null) {
-        print('Showtime is null for booking ${booking.id}, setting isActive to false');
+        print(
+          'Showtime is null for booking ${booking.id}, setting isActive to false',
+        );
         isActive = false;
       }
 
@@ -144,7 +151,6 @@ class _UserScreenState extends State<UserScreen> {
       );
     }
 
-    // Sắp xếp theo ngày giảm dần
     bookingDetailsList.sort((a, b) {
       final dateA = DateTime.parse(a.booking.bookingDate);
       final dateB = DateTime.parse(b.booking.bookingDate);
@@ -156,13 +162,25 @@ class _UserScreenState extends State<UserScreen> {
 
   Future<void> _logout() async {
     try {
-      Config.isLogin = false;
-      Config.currentUser = null;
+      // Xóa cache ảnh
+      if (_user?.id != null) {
+        final imageUrl = '${AppConfig.BASEURL}/api/v1/users/${_user!.id}/image';
+        await DefaultCacheManager().removeFile(imageUrl);
+        print('Cleared image cache for URL: $imageUrl');
+      }
+
+      setState(() {
+        _user = null;
+        _selectedImage = null;
+        _isLoading = true;
+        AppConfig.isLogin = false;
+        AppConfig.currentUser = null;
+      });
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/default',
-          (route) => false,
+              (route) => false,
           arguments: 0,
         );
       }
@@ -171,6 +189,119 @@ class _UserScreenState extends State<UserScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Lỗi khi đăng xuất: $e')));
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Chọn từ thư viện'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final XFile? image = await picker.pickImage(
+                    source: ImageSource.gallery,
+                  );
+                  if (image != null) {
+                    setState(() {
+                      _selectedImage = image;
+                    });
+                    await _uploadImage();
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Chụp ảnh'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  final XFile? image = await picker.pickImage(
+                    source: ImageSource.camera,
+                  );
+                  if (image != null) {
+                    setState(() {
+                      _selectedImage = image;
+                    });
+                    await _uploadImage();
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _uploadImage() async {
+    if (_selectedImage == null || _user == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      await _userService.uploadUserImage(_user!.id!, _selectedImage!);
+
+      // Tạo tên file mới với timestamp để đảm bảo cập nhật
+      final newImageName = 'user_${_user!.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final updatedUser = User(
+        id: _user!.id,
+        name: _user!.name,
+        email: _user!.email,
+        password: _user!.password,
+        phoneNumber: _user!.phoneNumber,
+        address: _user!.address,
+        dateOfBirth: _user!.dateOfBirth,
+        createdAt: _user!.createdAt,
+        isActive: _user!.isActive,
+        roleName: _user!.roleName,
+        imageName: newImageName,
+      );
+      AppConfig.currentUser = updatedUser;
+
+      // Xóa cache ảnh sau khi upload
+      final imageUrl = '${AppConfig.BASEURL}/api/v1/users/${_user!.id}/image';
+      await DefaultCacheManager().removeFile(imageUrl);
+
+      // Cập nhật cache key để buộc image widget tải lại ảnh
+      setState(() {
+        _cacheKey = DateTime.now().millisecondsSinceEpoch.toString();
+        _user = updatedUser;
+        _isUploading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tải ảnh lên thành công!')),
+        );
+      }
+    } catch (e) {
+      String errorMessage = 'Lỗi khi tải ảnh lên. Vui lòng thử lại.';
+      if (e.toString().contains('Upload failed')) {
+        errorMessage = 'Không thể tải ảnh lên server. Kiểm tra kết nối mạng.';
+      } else if (e.toString().contains('Permission')) {
+        errorMessage =
+        'Không có quyền truy cập. Vui lòng cấp quyền cho ứng dụng.';
+      }
+
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     }
   }
@@ -195,35 +326,39 @@ class _UserScreenState extends State<UserScreen> {
           ),
         ],
       ),
-      body:
+      body: Stack(
+        children: [
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _errorMessage != null
               ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-              : RefreshIndicator(
-                onRefresh: _fetchUser,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(child: _buildUserInfoSection()),
-                      const Divider(height: 10, thickness: 1),
-                      _buildTabs(),
-                      const Divider(height: 10, thickness: 1),
-                      _buildSelectedTabContent(),
-                    ],
-                  ),
-                ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
               ),
+            ),
+          )
+              : RefreshIndicator(
+            onRefresh: _fetchUser,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(child: _buildUserInfoSection()),
+                  const Divider(height: 10, thickness: 1),
+                  _buildTabs(),
+                  const Divider(height: 10, thickness: 1),
+                  _buildSelectedTabContent(),
+                ],
+              ),
+            ),
+          ),
+          if (_isUploading) const Center(child: CircularProgressIndicator()),
+        ],
+      ),
     );
   }
 
@@ -233,10 +368,37 @@ class _UserScreenState extends State<UserScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.grey[200],
-            child: Icon(Icons.person, size: 30, color: Colors.grey[400]),
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              _selectedImage != null
+                  ? CircleAvatar(
+                radius: 30,
+                backgroundImage: FileImage(File(_selectedImage!.path)),
+                backgroundColor: Colors.grey[200],
+              )
+                  : CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.grey[200],
+                backgroundImage: _user?.imageName != null && _user!.imageName!.isNotEmpty
+                    ? NetworkImage(
+                  '${AppConfig.BASEURL}/api/v1/users/${_user!.id}/image?v=$_cacheKey',
+                  headers: {'Cache-Control': 'no-cache'},
+                )
+                    : null,
+                child: _user?.imageName == null || _user!.imageName!.isEmpty
+                    ? const Icon(Icons.person, size: 30, color: Colors.grey)
+                    : null,
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.camera_alt,
+                  size: 20,
+                  color: Colors.blue,
+                ),
+                onPressed: _isUploading ? null : _pickImage,
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
@@ -458,7 +620,6 @@ class _UserScreenState extends State<UserScreen> {
 
         final bookingDetailsList = snapshot.data!;
 
-        // Nhóm bookings theo tháng/năm
         Map<String, List<BookingDetails>> bookingsByMonthYear = {};
         for (var detail in bookingDetailsList) {
           final date = DateTime.parse(detail.booking.bookingDate);
@@ -469,13 +630,12 @@ class _UserScreenState extends State<UserScreen> {
           bookingsByMonthYear[monthYear]!.add(detail);
         }
 
-        // Sắp xếp các tháng/năm theo thứ tự giảm dần
         final sortedKeys =
-            bookingsByMonthYear.keys.toList()..sort((a, b) {
-              final dateA = monthYearFormatter.parse(a);
-              final dateB = monthYearFormatter.parse(b);
-              return dateB.compareTo(dateA);
-            });
+        bookingsByMonthYear.keys.toList()..sort((a, b) {
+          final dateA = monthYearFormatter.parse(a);
+          final dateB = monthYearFormatter.parse(b);
+          return dateB.compareTo(dateA);
+        });
 
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -512,7 +672,6 @@ class _UserScreenState extends State<UserScreen> {
                       final room = detail.room;
                       final cinema = detail.cinema;
 
-                      // Nếu thiếu thông tin, hiển thị placeholder
                       if (showtime == null ||
                           movie == null ||
                           room == null ||
@@ -524,14 +683,13 @@ class _UserScreenState extends State<UserScreen> {
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: GestureDetector(
                           onTap: () {
-                            // Chuyển hướng đến BookingDetailScreen và truyền BookingDetails
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
                                     (context) => BookingDetailScreen(
-                                      bookingDetails: detail,
-                                    ),
+                                  bookingDetails: detail,
+                                ),
                               ),
                             );
                           },
@@ -553,10 +711,10 @@ class _UserScreenState extends State<UserScreen> {
                                       height: 120,
                                       fit: BoxFit.cover,
                                       errorBuilder: (
-                                        context,
-                                        error,
-                                        stackTrace,
-                                      ) {
+                                          context,
+                                          error,
+                                          stackTrace,
+                                          ) {
                                         print(
                                           'Error loading movie poster: $error',
                                         );
@@ -573,7 +731,7 @@ class _UserScreenState extends State<UserScreen> {
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           movie.name,
@@ -585,19 +743,19 @@ class _UserScreenState extends State<UserScreen> {
                                         const SizedBox(height: 4),
                                         Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                          MainAxisAlignment.start,
                                           children: [
                                             const Text('2D PHỤ ĐỀ '),
                                             Container(
                                               padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
                                               decoration: BoxDecoration(
                                                 color: Colors.redAccent,
                                                 borderRadius:
-                                                    BorderRadius.circular(4),
+                                                BorderRadius.circular(4),
                                               ),
                                               child: Text(
                                                 '${movie.ageRating}',
@@ -725,10 +883,10 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildProgressMarker(
-    double positionPercent,
-    double totalWidth, {
-    required bool isActive,
-  }) {
+      double positionPercent,
+      double totalWidth, {
+        required bool isActive,
+      }) {
     return Positioned(
       left: totalWidth * positionPercent - 6,
       top: -5,

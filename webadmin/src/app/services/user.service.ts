@@ -13,10 +13,10 @@ import { throwError } from 'rxjs';
   providedIn: 'root',
 })
 export class UserService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   login(loginDTO: LoginDTO): Observable<any> {
-    return this.http.post<any>(`${Environment.apiBaseUrl}/users/login`, loginDTO);
+    return this.http.post<any>(`${Environment.apiBaseUrl}/users/login/admin`, loginDTO);
   }
 
   setUser(user: any): void {
@@ -62,6 +62,10 @@ export class UserService {
     );
   }
 
+  updateUserStatus(userId: number, isActive: boolean): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${Environment.apiBaseUrl}/users/${userId}/status`, { isActive })
+      .pipe(catchError(this.handleError));
+  }
 
   private mapToUsers(apiUsers: any[]): UserDTO[] {
     return apiUsers.map(user => ({
@@ -74,7 +78,8 @@ export class UserService {
       dateofbirth: user.dateofbirth,
       createdat: user.createdat,
       isactive: user.isactive,
-      rolename: user.rolename
+      rolename: user.rolename,
+      imagename: user.imagename,
     }));
   }
 

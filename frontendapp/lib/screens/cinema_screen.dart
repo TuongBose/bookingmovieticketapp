@@ -44,31 +44,21 @@ class _CinemaScreenState extends State<CinemaScreen> {
             child: TextButton.icon(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Chức năng lọc khu vực đang phát triển!')),
+                  const SnackBar(
+                    content: Text('Chức năng lọc khu vực đang phát triển!'),
+                  ),
                 );
               },
-              icon: const Icon(
-                Icons.location_on,
-                color: Colors.blue,
-                size: 20,
-              ),
+              icon: const Icon(Icons.location_on, color: Colors.blue, size: 20),
               label: const Text(
                 'Toàn quốc',
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.blue, fontSize: 14),
               ),
             ),
           ),
           // Đường ngang ngắn phân cách
           Container(
-          child:
-          const Divider(
-            height: 40,
-            thickness: 1,
-            color: Colors.grey,
-          ),
+            child: const Divider(height: 40, thickness: 1, color: Colors.grey),
           ),
           // Nội dung danh sách rạp chiếu phim
           Expanded(
@@ -96,83 +86,124 @@ class _CinemaScreenState extends State<CinemaScreen> {
                     ),
                   );
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Không có rạp chiếu phim nào'));
+                  return const Center(
+                    child: Text('Không có rạp chiếu phim nào'),
+                  );
                 }
 
                 final cinemas = snapshot.data!;
 
                 return ListView.separated(
                   itemCount: cinemas.length,
-                  separatorBuilder: (context, index) => const Divider(
-                    height: 40,
-                    thickness: 1,
-                    color: Colors.grey,
-                  ),
+                  separatorBuilder:
+                      (context, index) => const Divider(
+                        height: 40,
+                        thickness: 1,
+                        color: Colors.grey,
+                      ),
                   itemBuilder: (context, index) {
                     final cinema = cinemas[index];
-                    return GestureDetector(onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>CinemaShowTimesScreen(cinema:cinema)));
-                    },
-                    child:
-
-                      Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.asset(
-                              'assets/images/bear.jpg',
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: 80,
-                                  height: 80,
-                                  color: Colors.grey[300],
-                                  child: const Icon(Icons.broken_image),
-                                );
-                              },
-                            ),
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    CinemaShowTimesScreen(cinema: cinema),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  cinema.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  cinema.address,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  cinema.phoneNumber,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ],
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8.0,
+                          horizontal: 16.0,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child:
+                                  cinema.imageName != null
+                                      ? Image.network(
+                                        _cinemaService.getCinemaImageUrl(
+                                          cinema.id,
+                                          cinema.imageName,
+                                        ),
+                                        width: 150,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (
+                                          context,
+                                          error,
+                                          stackTrace,
+                                        ) {
+                                          return Image.asset(
+                                            'assets/images/bear.jpg',
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
+                                      )
+                                      : Image.asset(
+                                        'assets/images/bear.jpg',
+                                        width: 150,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (
+                                          context,
+                                          error,
+                                          stackTrace,
+                                        ) {
+                                          return Container(
+                                            width: 80,
+                                            height: 80,
+                                            color: Colors.grey[300],
+                                            child: const Icon(
+                                              Icons.broken_image,
+                                            ),
+                                          );
+                                        },
+                                      ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    cinema.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    cinema.address,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    cinema.phoneNumber,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                     );
                   },
                 );

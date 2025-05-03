@@ -24,6 +24,16 @@ export class CinemaService {
     );
   }
 
+  getCinemaImage(cinemaId: number): Observable<Blob> {
+    return this.http.get(`${Environment.apiBaseUrl}/cinemas/${cinemaId}/image`, {
+      responseType: 'blob'
+    }).pipe(
+      timeout(5000),
+      retry(1),
+      catchError(this.handleError)
+    );
+  }
+
   private mapToCinemas(apiCinemas: any[]): CinemaDTO[] {
     return apiCinemas.map(cinema => ({
         id: cinema.id || 0,

@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;import '../config.dart';
+import 'package:http/http.dart' as http;import '../app_config.dart';
 
 import '../models/cinema.dart';
 
 class CinemaService {
   Future<List<Cinema>> getCinemas() async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/cinemas');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/cinemas');
     try {
       final response = await http.get(
         url,
@@ -24,7 +24,7 @@ class CinemaService {
 
   Future<Cinema?> getCinemaById(int cinemaId) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/cinemas/$cinemaId');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/cinemas/$cinemaId');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},
@@ -40,5 +40,12 @@ class CinemaService {
       print('Error fetching cinema $cinemaId: $e');
       return null;
     }
+  }
+
+  String getCinemaImageUrl(int cinemaId, String? imageName) {
+    if (imageName == null) {
+      return ''; // Trả về rỗng nếu không có hình ảnh
+    }
+    return '${AppConfig.BASEURL}/api/v1/cinemas/$cinemaId/image';
   }
 }

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:frontendapp/config.dart';
+import 'package:frontendapp/app_config.dart';
 import '../models/movie.dart';
 
 class MovieService {
   Future<List<Movie>> _fetchMovies(String endpoint) async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/movies/$endpoint');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/movies/$endpoint');
     try {
       final response = await http.get(
         url,
@@ -38,7 +38,7 @@ class MovieService {
 
   Future<Movie?> getMovieById(int movieId) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/movies/$movieId');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/movies/$movieId');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},

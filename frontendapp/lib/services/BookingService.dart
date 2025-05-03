@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../config.dart';
+import '../app_config.dart';
 import '../dtos/BookingDTO.dart';
 import '../models/booking.dart';
 import '../models/bookingdetail.dart';
@@ -8,7 +8,7 @@ import '../models/bookingdetail.dart';
 class BookingService {
   Future<int> createBooking(BookingDTO bookingDTO) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/bookings');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/bookings');
       final response = await http.post(
         url,
         headers: {
@@ -29,7 +29,7 @@ class BookingService {
   }
 
   Future<List<Booking>> getBookingsByShowtimeId(int showtimeId) async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/bookings/showtimes/$showtimeId/bookings');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/bookings/showtimes/$showtimeId/bookings');
     try {
       final response = await http.get(
         url,
@@ -47,7 +47,7 @@ class BookingService {
   }
 
   Future<int> sumTotalPriceByUserId(int id) async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/bookings/users/$id/totalprice');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/bookings/users/$id/totalprice');
     try {
       final response = await http.get(
         url,
@@ -65,7 +65,7 @@ class BookingService {
   }
   Future<List<Booking>> getBookingByUserId(int userId) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/bookings/users/$userId/bookings');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/bookings/users/$userId/bookings');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:http/http.dart' as http;
-import '../config.dart';
+import '../app_config.dart';
 import '../models/cinema.dart';
 import '../models/movie.dart';
 import '../models/showtime.dart';
@@ -39,7 +39,7 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
   Future<List<Showtime>> _fetchShowtimes() async {
     try {
       final url = Uri.parse(
-        '${Config.BASEURL}/api/v1/showtimes/cinemaanddate?cinemaId=${widget.cinema.id}&date=${DateFormat('yyyy-MM-dd').format(selectedDate)}',
+        '${AppConfig.BASEURL}/api/v1/showtimes/cinemaanddate?cinemaId=${widget.cinema.id}&date=${DateFormat('yyyy-MM-dd').format(selectedDate)}',
       );
       final response = await http.get(
         url,
@@ -78,7 +78,7 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
 
   Future<Movie?> _fetchMovieById(int movieId) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/movies/$movieId');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/movies/$movieId');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},
@@ -98,7 +98,7 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
 
   Future<Room?> getRoomById(int roomId) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/rooms/$roomId');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},
@@ -117,7 +117,7 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
 
   Future<List<Seat>> getSeatByRoomId(int roomId) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/seats?roomId=$roomId');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/seats?roomId=$roomId');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},
@@ -414,7 +414,7 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
                                               return OutlinedButton(
                                                 onPressed: () async {
                                                   // Kiểm tra trạng thái đăng nhập
-                                                  if (!Config.isLogin) {
+                                                  if (!AppConfig.isLogin) {
                                                     ScaffoldMessenger.of(
                                                       context,
                                                     ).showSnackBar(

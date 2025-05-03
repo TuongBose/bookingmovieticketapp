@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../config.dart';
+import '../app_config.dart';
 import '../dtos/BookingDTO.dart';
 import '../dtos/BookingDetailDTO.dart';
 import '../models/cinema.dart';
@@ -49,20 +49,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       // Kiểm tra trạng thái đăng nhập và thông tin người dùng
       print('Checking login status...');
-      if (!Config.isLogin) {
+      if (!AppConfig.isLogin) {
         throw Exception('Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.');
       }
-      if (Config.currentUser == null || Config.currentUser!.id == null) {
+      if (AppConfig.currentUser == null || AppConfig.currentUser!.id == null) {
         throw Exception('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
       }
 
-      print('User logged in. User ID: ${Config.currentUser!.id}');
+      print('User logged in. User ID: ${AppConfig.currentUser!.id}');
 
       // 1. Tạo Booking với userId từ Config.currentUser
       print('Creating booking...');
       final bookingService = BookingService();
       final bookingDTO = BookingDTO(
-        userId: Config.currentUser!.id!,
+        userId: AppConfig.currentUser!.id!,
         showtimeId: widget.showTimeId,
         totalPrice: widget.totalPrice - _starsDiscount.toDouble(),
         paymentMethod: _selectedPaymentMethod!,

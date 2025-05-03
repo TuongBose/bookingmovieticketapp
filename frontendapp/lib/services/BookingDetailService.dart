@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../config.dart';
+import '../app_config.dart';
 import 'package:frontendapp/models/bookingdetail.dart';
 
 import '../dtos/BookingDetailDTO.dart';
@@ -8,7 +8,7 @@ import '../dtos/BookingDetailDTO.dart';
 class BookingDetailService{
   Future<void> createBookingDetail(BookingDetailDTO bookingDetailDTO) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/bookingdetails');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/bookingdetails');
       final response = await http.post(
         url,
         headers: {
@@ -26,7 +26,7 @@ class BookingDetailService{
   }
 
   Future<List<BookingDetail>> getBookingDetailsByBookingId(int bookingId) async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/bookingdetails/$bookingId/details');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/bookingdetails/$bookingId/details');
     try {
       final response = await http.get(
         url,

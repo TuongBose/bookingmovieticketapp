@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:frontendapp/models/seat.dart';
 import 'package:http/http.dart' as http;
 
-import '../config.dart';
+import '../app_config.dart';
 
 class SeatService{
   Future<Seat> getSeatById(int seatId) async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/seats/$seatId');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/seats/$seatId');
     try {
       final response = await http.get(
         url,

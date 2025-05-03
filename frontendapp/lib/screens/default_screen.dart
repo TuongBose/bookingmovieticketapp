@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontendapp/config.dart';
+import 'package:frontendapp/app_config.dart';
 import 'package:frontendapp/screens/cinema_screen.dart';
 import 'package:frontendapp/screens/home_screen.dart';
 import 'package:frontendapp/screens/movie_news_screen.dart';
@@ -53,7 +53,7 @@ class MyDefaultScreenState extends State<MyDefaultScreen> {
       const HomeScreen(),
       CinemaScreen(),
       const MovieNewsScreen(),
-      Config.isLogin ? const UserScreen() : const AccountScreen(),
+      AppConfig.isLogin ? const UserScreen() : const AccountScreen(),
     ];
 
     return Scaffold(

@@ -9,6 +9,7 @@ class User {
   final DateTime createdAt;
   final bool isActive;
   final bool roleName;
+  final String? imageName;
 
   User({
     this.id,
@@ -21,6 +22,7 @@ class User {
     required this.createdAt,
     required this.isActive,
     required this.roleName,
+    this.imageName,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -34,5 +36,6 @@ class User {
     createdAt: DateTime.parse(json['createdat']),
     isActive: json['isactive'],
     roleName: json['rolename'],
+    imageName: json['imagename'],
   );
 }

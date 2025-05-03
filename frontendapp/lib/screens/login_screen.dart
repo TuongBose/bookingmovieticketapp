@@ -3,7 +3,7 @@ import 'package:frontendapp/services/UserService.dart';
 import 'package:frontendapp/screens/reset_password_screen.dart';
 import 'package:frontendapp/dtos/UserLoginDTO.dart';
 import 'package:frontendapp/models/user.dart';
-import 'package:frontendapp/config.dart';
+import 'package:frontendapp/app_config.dart';
 
 class DangNhapScreen extends StatefulWidget {
   const DangNhapScreen({super.key});
@@ -53,8 +53,8 @@ class _DangNhapScreenState extends State<DangNhapScreen> {
       final user = await _userService.login(userLoginDTO);
 
       if (mounted) {
-        Config.isLogin = true;
-        Config.currentUser = user;
+        AppConfig.isLogin = true;
+        AppConfig.currentUser = user;
 
         ScaffoldMessenger.of(
           context,

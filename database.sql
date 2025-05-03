@@ -9,6 +9,7 @@ CREATE TABLE users (
     phonenumber VARCHAR(20),
     address VARCHAR(255),
     dateofbirth DATE NOT NULL,
+    imagename VARCHAR(100) DEFAULT NULL,
     createdat DATETIME,
     isactive BIT DEFAULT 1,
     rolename BIT 
@@ -158,6 +159,11 @@ INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, cre
 VALUES 
 ('Nguyen Van A', 'nguyenvana@example.com', 'password123', '0905123456', '123 Đường Láng, Hà Nội', '1990-05-15', '2025-04-21 14:30:00', 1, 0),
 ('Tran Thi B', 'tranthib@example.com', 'securepass456', '0987654321', '456 Nguyễn Huệ, TP.HCM', '1995-08-20', '2025-04-21 15:00:00', 1, 1);
+
+INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, createdat, isactive, rolename)
+VALUES 
+('Bui Teo Eo Lai', 'ntrngtai@example.com', '555', '999', '30/4/1975', '2000-12-12', '2025-04-21 14:30:00', 1, 1),
+('Nguyen Van A', 'nguyenvana@example.com', 'password123', '0905123456888', '123 Đường Láng, Hà Nội', '1990-05-15', '2025-04-21 14:30:00', 1, 1);
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
 VALUES 

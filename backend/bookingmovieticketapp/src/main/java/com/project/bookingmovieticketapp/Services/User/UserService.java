@@ -34,13 +34,42 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public User login(String phoneNumber, String password) throws Exception {
+    public User loginCustomer(String phoneNumber, String password) throws Exception {
         Optional<User> userOptional = userRepository.findByphonenumber(phoneNumber);
         if (userOptional.isEmpty())
             throw new RuntimeException("Sai so dien thoai hoac password");
 
         User existingUser = userOptional.get();
+        if (!existingUser.isIsactive()) {
+            throw new RuntimeException("Sai so dien thoai hoac password");
+        }
+
         if (!existingUser.getPassword().equals(password)) {
+            throw new RuntimeException("Sai so dien thoai hoac password");
+        }
+
+        if (existingUser.isRolename()) {
+            throw new RuntimeException("Sai so dien thoai hoac password");
+        }
+
+        return existingUser;
+    }
+
+    @Override
+    public User loginAdmin(String phoneNumber, String password) throws Exception {
+        Optional<User> userOptional = userRepository.findByphonenumber(phoneNumber);
+        if (userOptional.isEmpty())
+            throw new RuntimeException("Sai so dien thoai hoac password");
+
+        User existingUser = userOptional.get();
+        if (!existingUser.isIsactive()) {
+            throw new RuntimeException("Sai so dien thoai hoac password");
+        }
+
+        if (!existingUser.getPassword().equals(password)) {
+            throw new RuntimeException("Sai so dien thoai hoac password");
+        }
+        if (!existingUser.isRolename()) {
             throw new RuntimeException("Sai so dien thoai hoac password");
         }
 
@@ -55,5 +84,27 @@ public class UserService implements IUserService {
     @Override
     public List<User> getAllUserAdmin() {
         return userRepository.findByRolenameTrue();
+    }
+
+    @Override
+    public User updateUserStatus(int userId, boolean isActive) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy người dùng với ID: " + userId);
+        }
+        User user = userOptional.get();
+        user.setIsactive(isActive);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User getUserById(int id) throws Exception {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + id));
+    }
+
+    @Override
+    public void saveUser(User user) {
+        userRepository.save(user);
     }
 }

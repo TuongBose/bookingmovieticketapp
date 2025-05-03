@@ -3,7 +3,7 @@ import 'package:frontendapp/screens/seat_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import '../config.dart';
+import '../app_config.dart';
 import '../models/cast.dart';
 import '../models/movie.dart';
 import '../models/cinema.dart';
@@ -76,7 +76,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
   Future<List<Cast>> getCastsByMovieId(int movieId) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/casts/$movieId');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/casts/$movieId');
       print('Request URL for casts: $url');
       final response = await http.get(
         url,
@@ -99,7 +99,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
       String city = currentLocation == "Toàn quốc" ? "all" : currentLocation;
       String encodedLocation = Uri.encodeQueryComponent(city);
       final url = await Uri.parse(
-        '${Config.BASEURL}/api/v1/cinemas/movieandcityanddate?movieId=${widget.movie.id}&city=$encodedLocation&date=${DateFormat('yyyy-MM-dd').format(selectedDate)}',
+        '${AppConfig.BASEURL}/api/v1/cinemas/movieandcityanddate?movieId=${widget.movie.id}&city=$encodedLocation&date=${DateFormat('yyyy-MM-dd').format(selectedDate)}',
       );
       print('Request URL for cinemas: $url');
       final response = await http.get(
@@ -122,7 +122,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   Future<List<Showtime>> getShowTimeByMovieIdAndCinemaIdAndDate(int cinemaId, DateTime date) async {
     try {
       final url = await Uri.parse(
-        '${Config.BASEURL}/api/v1/showtimes?movieId=${widget.movie.id}&cinemaId=$cinemaId&date=${DateFormat('yyyy-MM-dd').format(date)}',
+        '${AppConfig.BASEURL}/api/v1/showtimes?movieId=${widget.movie.id}&cinemaId=$cinemaId&date=${DateFormat('yyyy-MM-dd').format(date)}',
       );
       print('Request URL for showtimes: $url');
       final response = await http.get(
@@ -157,7 +157,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
   Future<Room?> getRoomById(int roomId) async {
     try {
-      final url = await Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId');
+      final url = await Uri.parse('${AppConfig.BASEURL}/api/v1/rooms/$roomId');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},
@@ -176,7 +176,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
 
   Future<List<Seat>> getSeatByRoomId(int roomId) async {
     try {
-      final url = await Uri.parse('${Config.BASEURL}/api/v1/seats?roomId=$roomId');
+      final url = await Uri.parse('${AppConfig.BASEURL}/api/v1/seats?roomId=$roomId');
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json; charset=UTF-8'},
@@ -794,7 +794,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                               return OutlinedButton(
                                 onPressed: () async {
                                   // Kiểm tra trạng thái đăng nhập
-                                  if (!Config.isLogin) {
+                                  if (!AppConfig.isLogin) {
                                     // Hiển thị thông báo yêu cầu đăng nhập
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Vui lòng đăng nhập để chọn ghế!')),

@@ -13,4 +13,5 @@ public interface ICinemaService {
     List<Cinema> getAllCinema();
     List<Cinema> getCinemaByMovieIdAndCityAndDate(int movieId, String city, LocalDate date);
     Cinema getCinemaById(int id) throws Exception;
+    void saveCinema(Cinema cinema);
 }

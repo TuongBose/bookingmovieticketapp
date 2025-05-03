@@ -1,15 +1,19 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:frontendapp/dtos/UserDTO.dart';
 import 'package:frontendapp/dtos/UserLoginDTO.dart';
 import 'package:http/http.dart' as http;
-import '../config.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
+import '../app_config.dart';
 import '../models/user.dart';
 
 class UserService {
   Future<void> createUser(UserDTO userDTO) async {
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/users/register');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/users/register');
       final response = await http.post(
         url,
         headers: {
@@ -44,8 +48,9 @@ class UserService {
   }
 
   Future<User> login(UserLoginDTO userLoginDTO) async {
+    String error = '';
     try {
-      final url = Uri.parse('${Config.BASEURL}/api/v1/users/login');
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/users/login/customer');
       final response = await http.post(
         // Sửa thành http.post
         url,
@@ -68,12 +73,47 @@ class UserService {
           );
         }
       } else {
+        error = response.body;
+        throw Exception('');
+      }
+    } catch (e) {
+      throw error;
+    }
+  }
+
+  Future<void> uploadUserImage(int userId, XFile imageFile) async {
+    try {
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/users/$userId/image');
+
+      String? mimeType = lookupMimeType(imageFile.path);
+      if (mimeType == null || !mimeType.startsWith('image/')) {
         throw Exception(
-          'Failed to login: ${response.statusCode} - ${response.body}',
+          'File không phải là hình ảnh hợp lệ. Vui lòng chọn file ảnh (jpg, png, v.v.).',
+        );
+      }
+      print('Detected MIME type: $mimeType');
+
+      var request = http.MultipartRequest('POST', url);
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          imageFile.path,
+          contentType: MediaType.parse(mimeType),
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        print('Upload successful: $responseBody');
+      } else {
+        throw Exception(
+          'Upload failed: ${response.statusCode} - $responseBody',
         );
       }
     } catch (e) {
-      throw Exception('Error during login: $e');
+      throw Exception('Lỗi khi upload ảnh: $e');
     }
   }
 }

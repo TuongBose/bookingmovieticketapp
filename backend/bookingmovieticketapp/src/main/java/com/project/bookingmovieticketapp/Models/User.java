@@ -39,6 +39,7 @@ public class User {
     private LocalDateTime createdat;
     private boolean isactive;
     private boolean rolename;
+    private String imagename;
 
     @PrePersist
     protected void onCreate() {

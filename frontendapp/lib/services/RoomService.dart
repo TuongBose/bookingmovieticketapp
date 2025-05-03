@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../config.dart';
+import '../app_config.dart';
 import '../models/room.dart';
 import '../models/seat.dart';
 
 class RoomService {
   Future<Room> getRoomById(int roomId) async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/rooms/$roomId');
     try {
       final response = await http.get(
         url,
@@ -24,7 +24,7 @@ class RoomService {
   }
 
   Future<List<Seat>> getSeatsByRoomId(int roomId) async {
-    final url = Uri.parse('${Config.BASEURL}/api/v1/rooms/$roomId/seats');
+    final url = Uri.parse('${AppConfig.BASEURL}/api/v1/rooms/$roomId/seats');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
