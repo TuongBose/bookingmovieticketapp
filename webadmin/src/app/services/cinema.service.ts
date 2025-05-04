@@ -10,7 +10,7 @@ import { CinemaDTO } from '../dtos/cinema.dto';
   providedIn: 'root',
 })
 export class CinemaService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllCinema(): Observable<CinemaDTO[]> {
     const headers = new HttpHeaders()
@@ -20,6 +20,20 @@ export class CinemaService {
       timeout(5000),
       retry(1),
       map(response => this.mapToCinemas(response)), // Backend đã trả về danh sách phim, không cần response.results
+      catchError(this.handleError)
+    );
+  }
+
+  createCinema(formData: FormData): Observable<any> {
+    const headers = new HttpHeaders()
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${localStorage.getItem('access_token')}`); // Thêm token vào header nếu cần
+    return this.http.post(`${Environment.apiBaseUrl}/cinemas`, formData, {
+      headers: headers,
+      withCredentials: true,
+    }).pipe(
+      timeout(5000),
+      retry(1),
       catchError(this.handleError)
     );
   }
@@ -36,14 +50,14 @@ export class CinemaService {
 
   private mapToCinemas(apiCinemas: any[]): CinemaDTO[] {
     return apiCinemas.map(cinema => ({
-        id: cinema.id || 0,
-        name: cinema.name || 'Unknown Title',
-        city: cinema.city || 'Unknown City',
-        coordinates: cinema.coordinates || 'Unknown Coordinates',
-        address: cinema.address || 'Unknown Address',
-        phonenumber: cinema.phonenumber || 'Unknown Phone Number',
-        maxroom: cinema.maxroom || 0,
-        imagename: cinema.imagename || 'no_image',
+      id: cinema.id || 0,
+      name: cinema.name || 'Unknown Title',
+      city: cinema.city || 'Unknown City',
+      coordinates: cinema.coordinates || 'Unknown Coordinates',
+      address: cinema.address || 'Unknown Address',
+      phonenumber: cinema.phonenumber || 'Unknown Phone Number',
+      maxroom: cinema.maxroom || 0,
+      imagename: cinema.imagename || 'no_image',
     }));
   }
 

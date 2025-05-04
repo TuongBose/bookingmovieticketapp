@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../services/user.service';
 import { UserDTO } from '../dtos/user.dto';
+import { Environment } from '../environments/environment';
 
 @Component({
   selector: 'app-list-customer',
@@ -14,7 +15,7 @@ export class ListCustomerComponent implements OnInit {
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   ngOnInit(): void {
     this.loadCustomers();
@@ -57,5 +58,15 @@ export class ListCustomerComponent implements OnInit {
         console.error(`[toggleUserCustomerIsActive] Lỗi khi cập nhật trạng thái UserCustomer:`, error);
       }
     });
+  }
+
+  getUserImageUrl(userId: number, imagename: string): string {
+    return imagename && imagename !== 'no_image' ? `${Environment.apiBaseUrl}/users/${userId}/image` : 'assets/images/no_image.jpg';
+  }
+
+  onImageError(event: Event, userId: number): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = 'assets/images/no_image.jpg'; // Chuyển sang hình mặc định khi lỗi
+    console.warn(`Failed to load image for user ID ${userId}, using default image.`);
   }
 }

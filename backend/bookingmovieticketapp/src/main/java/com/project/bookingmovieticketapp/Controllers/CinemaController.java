@@ -1,14 +1,18 @@
 package com.project.bookingmovieticketapp.Controllers;
 
+import com.project.bookingmovieticketapp.DTOs.CinemaDTO;
 import com.project.bookingmovieticketapp.Models.Cinema;
 import com.project.bookingmovieticketapp.Services.Cinema.CinemaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.query.results.ResultBuilder;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -134,6 +138,27 @@ public class CinemaController {
             }
         } catch (MalformedURLException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi đường dẫn hình ảnh: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("")
+    public ResponseEntity<?> createCinema(
+            @Valid @RequestBody CinemaDTO cinemaDTO,
+            BindingResult result
+    )
+    {
+        try{
+            if (result.hasErrors()) {
+                List<String> errorMessage = result.getFieldErrors()
+                        .stream()
+                        .map(FieldError::getDefaultMessage)
+                        .toList();
+                return ResponseEntity.badRequest().body(errorMessage);
+            }
+            return ResponseEntity.ok(cinemaService.createCinema(cinemaDTO));
+        }catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

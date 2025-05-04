@@ -128,18 +128,18 @@ CREATE TABLE casts (
     FOREIGN KEY (movieid) REFERENCES movies(id) ON DELETE CASCADE
 );
 
-INSERT INTO cinemas (name, city, coordinates, address, phonenumber, maxroom)
+INSERT INTO cinemas (name, city, coordinates, address, phonenumber, maxroom, imagename)
 VALUES
-    ('Galaxy Nguyễn Du', 'TP.HCM', '10.7790,106.6918', '116 Nguyễn Du, Quận 1, TP.HCM', '02838222888', 4),
-    ('Galaxy Tân Bình', 'TP.HCM', '10.8012,106.6395', '246 Nguyễn Hồng Đào, Quận Tân Bình, TP.HCM', '02838496088', 5),
-    ('Galaxy Quang Trung', 'TP.HCM', '10.8491,106.6239', '304A Quang Trung, Quận Gò Vấp, TP.HCM', '02839890188', 6),
-    ('Galaxy Cần Thơ', 'Cần Thơ', '10.0321,105.7679', 'Lầu 4, TTTM Sense City, 1 Đại lộ Hòa Bình, Quận Ninh Kiều, Cần Thơ', '02923769888', 5),
-    ('Galaxy Đà Nẵng', 'Đà Nẵng', '16.0678,108.2235', 'Tầng 3, TTTM Indochina Riverside Mall, 74 Bạch Đằng, Quận Hải Châu, Đà Nẵng', '02363829888', 4),
-    ('Galaxy Linh Trung', 'TP.HCM', '10.8692,106.7796', 'Tầng 2, TTTM Vincom Thủ Đức, 216 Võ Văn Ngân, Quận Thủ Đức, TP.HCM', '02837202888', 6),
-    ('Galaxy Huỳnh Tấn Phát', 'TP.HCM', '10.7395,106.7298', '1362 Huỳnh Tấn Phát, Quận 7, TP.HCM', '02838739888', 5),
-    ('Galaxy Sala', 'TP.HCM', '10.7896,106.7525', 'Tầng 2, TTTM Takashimaya, 92-94 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM', '02838233888', 7),
-    ('Galaxy Bến Thành', 'TP.HCM', '10.7735,106.6982', 'Tầng 5, TTTM Vạn Hạnh Mall, 11 Sư Vạn Hạnh, Quận 10, TP.HCM', '02838651888', 4),
-    ('Galaxy Hải Phòng', 'Hải Phòng', '20.8449,106.6881', 'Tầng 5, TTTM Vincom Plaza Lê Thánh Tông, 1 Lê Thánh Tông, Quận Ngô Quyền, Hải Phòng', '02253856888', 5);
+    ('Galaxy Nguyễn Du', 'TP.HCM', '10.7790,106.6918', '116 Nguyễn Du, Quận 1, TP.HCM', '02838222888', 4, 'cinema_1_1746214967186.jpg'),
+    ('Galaxy Tân Bình', 'TP.HCM', '10.8012,106.6395', '246 Nguyễn Hồng Đào, Quận Tân Bình, TP.HCM', '02838496088', 5, 'cinema_2_1746215174736.jpg'),
+    ('Galaxy Quang Trung', 'TP.HCM', '10.8491,106.6239', '304A Quang Trung, Quận Gò Vấp, TP.HCM', '02839890188', 6, 'cinema_3_1746215224604.jpg'),
+    ('Galaxy Cần Thơ', 'Cần Thơ', '10.0321,105.7679', 'Lầu 4, TTTM Sense City, 1 Đại lộ Hòa Bình, Quận Ninh Kiều, Cần Thơ', '02923769888', 5, 'cinema_4_1746215349988.jpg'),
+    ('Galaxy Đà Nẵng', 'Đà Nẵng', '16.0678,108.2235', 'Tầng 3, TTTM Indochina Riverside Mall, 74 Bạch Đằng, Quận Hải Châu, Đà Nẵng', '02363829888', 4, 'cinema_5_1746215401993.jpg'),
+    ('Galaxy Linh Trung', 'TP.HCM', '10.8692,106.7796', 'Tầng 2, TTTM Vincom Thủ Đức, 216 Võ Văn Ngân, Quận Thủ Đức, TP.HCM', '02837202888', 6, 'cinema_6_1746215477736.jpg'),
+    ('Galaxy Huỳnh Tấn Phát', 'TP.HCM', '10.7395,106.7298', '1362 Huỳnh Tấn Phát, Quận 7, TP.HCM', '02838739888', 5, 'cinema_7_1746215524120.jpg'),
+    ('Galaxy Sala', 'TP.HCM', '10.7896,106.7525', 'Tầng 2, TTTM Takashimaya, 92-94 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM', '02838233888', 7, 'cinema_8_1746215129247.jpg'),
+    ('Galaxy Bến Thành', 'TP.HCM', '10.7735,106.6982', 'Tầng 5, TTTM Vạn Hạnh Mall, 11 Sư Vạn Hạnh, Quận 10, TP.HCM', '02838651888', 4, 'cinema_9_1746215628582.jpg'),
+    ('Galaxy Hải Phòng', 'Hải Phòng', '20.8449,106.6881', 'Tầng 5, TTTM Vincom Plaza Lê Thánh Tông, 1 Lê Thánh Tông, Quận Ngô Quyền, Hải Phòng', '02253856888', 5, 'cinema_10_1746215725572.jpg');
     
 USE bookingmovieticketapp;
 SELECT * FROM users;
@@ -167,8 +167,8 @@ VALUES
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
 VALUES 
-(1, 1, '2025-04-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 0),
-(1, 2, '2025-04-21 11:00:00', 200000, 'CASH', 'PENDING', 1);
+(1, 1, '2025-05-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 0),
+(1, 2, '2025-05-21 11:00:00', 200000, 'CASH', 'PENDING', 1);
 
 INSERT INTO bookingdetails (bookingid, seatid, price)
 VALUES 
@@ -179,8 +179,8 @@ VALUES
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
 VALUES 
-(2, 148, '2025-04-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 0);
+(2, 148, '2025-05-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 0);
 
 INSERT INTO bookingdetails (bookingid, seatid, price)
 VALUES 
-(8, 4704, 75000);
+(2, 10, 75000);

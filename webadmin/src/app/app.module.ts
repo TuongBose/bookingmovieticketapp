@@ -40,7 +40,7 @@ import { ShowtimeDetailDialogComponent } from './list-showtime/showtime-detail-d
     AppRoutingModule,
     NgChartsModule,
     MatDialogModule,
-    MatButtonModule
+    MatButtonModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
