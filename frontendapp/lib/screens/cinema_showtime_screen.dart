@@ -49,8 +49,10 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
         final List<dynamic> data = jsonDecode(response.body);
         final showtimes = data.map((json) => Showtime.fromJson(json)).toList();
 
+        final activeShowtimes = showtimes.where((showtime) => showtime.isactive).toList();
+
         // Lấy thông tin phim và phòng chiếu cho từng suất chiếu
-        for (var showtime in showtimes) {
+        for (var showtime in activeShowtimes) {
           // Lấy thông tin phim
           if (!_moviesCache.containsKey(showtime.movieId)) {
             final movie = await _fetchMovieById(showtime.movieId);
@@ -66,7 +68,7 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
             }
           }
         }
-        return showtimes;
+        return activeShowtimes;
       } else {
         throw Exception('Failed to load showtimes: ${response.statusCode}');
       }

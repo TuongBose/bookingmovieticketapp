@@ -38,6 +38,25 @@ export class CinemaService {
     );
   }
 
+updateCinema(cinemaId: number, formData: FormData): Observable<any> {
+  const headers = new HttpHeaders()
+    .set('Accept', 'application/json')
+    .set('Authorization', `Bearer ${localStorage.getItem('access_token')}`);
+  return this.http.post(`${Environment.apiBaseUrl}/cinemas/${cinemaId}`, formData, {
+    headers: headers,
+    withCredentials: true,
+  }).pipe(
+    timeout(5000),
+    retry(1),
+    catchError(this.handleError)
+  );
+}
+
+updateCinemaStatus(cinemaId: number, isActive: boolean): Observable<{message:string}> {
+  return this.http.put<{message:string}>(`${Environment.apiBaseUrl}/cinemas/${cinemaId}/status`, { isActive })
+      .pipe(catchError(this.handleError));
+}
+
   getCinemaImage(cinemaId: number): Observable<Blob> {
     return this.http.get(`${Environment.apiBaseUrl}/cinemas/${cinemaId}/image`, {
       responseType: 'blob'
@@ -58,6 +77,7 @@ export class CinemaService {
       phonenumber: cinema.phonenumber || 'Unknown Phone Number',
       maxroom: cinema.maxroom || 0,
       imagename: cinema.imagename || 'no_image',
+      isactive: cinema.isactive || false,
     }));
   }
 

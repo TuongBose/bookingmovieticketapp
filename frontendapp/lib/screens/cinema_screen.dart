@@ -91,7 +91,7 @@ class _CinemaScreenState extends State<CinemaScreen> {
                   );
                 }
 
-                final cinemas = snapshot.data!;
+                final cinemas = snapshot.data!.where((cinema) => cinema.isActive).toList();
 
                 return ListView.separated(
                   itemCount: cinemas.length,
@@ -147,8 +147,8 @@ class _CinemaScreenState extends State<CinemaScreen> {
                                           );
                                         },
                                       )
-                                      : Image.asset(
-                                        'assets/images/bear.jpg',
+                                      : Image.network(
+                                        'https://yt3.googleusercontent.com/ytc/AIdro_nml8pToD7yNeAVIPMck_emdM0lt4pFCI_i-y_k0EFUzyg=s900-c-k-c0x00ffffff-no-rj',
                                         width: 150,
                                         height: 100,
                                         fit: BoxFit.cover,

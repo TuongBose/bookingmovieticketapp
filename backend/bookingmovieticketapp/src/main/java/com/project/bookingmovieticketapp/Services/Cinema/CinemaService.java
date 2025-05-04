@@ -34,7 +34,9 @@ public class CinemaService implements ICinemaService {
                 .coordinates(cinemaDTO.getCoordinates())
                 .address(cinemaDTO.getAddress())
                 .phonenumber(cinemaDTO.getPhonenumber())
+                .maxroom(cinemaDTO.getMaxroom())
                 .imagename(cinemaDTO.getImagename())
+                .isactive(cinemaDTO.isIsactive())
                 .build();
         cinemaRepository.save(newCinema);
         return newCinema;
@@ -51,7 +53,7 @@ public class CinemaService implements ICinemaService {
         existingCinema.setAddress(cinemaDTO.getAddress());
         existingCinema.setPhonenumber(cinemaDTO.getPhonenumber());
         existingCinema.setMaxroom(cinemaDTO.getMaxroom());
-        existingCinema.setImagename(cinemaDTO.getImagename());
+        existingCinema.setIsactive(cinemaDTO.isIsactive());
         cinemaRepository.save(existingCinema);
         return existingCinema;
     }
@@ -76,6 +78,7 @@ public class CinemaService implements ICinemaService {
         // Lọc rạp có suất chiếu vào ngày date
         List<Cinema> filteredCinemas = new ArrayList<>();
         for (Cinema cinema : cinemas) {
+            if(!cinema.isIsactive()) continue;
             List<Room> rooms = roomRepository.findByCinema(cinema);
             List<Integer> roomIds = rooms.stream().map(Room::getId).toList();
 
@@ -95,6 +98,14 @@ public class CinemaService implements ICinemaService {
 
     @Override
     public void saveCinema(Cinema cinema) {
+        cinemaRepository.save(cinema);
+    }
+
+    @Override
+    public void updateCinemaStatus(int id, boolean isActive) throws Exception {
+        Cinema cinema = cinemaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Suất chiếu không tồn tại."));
+        cinema.setIsactive(isActive);
         cinemaRepository.save(cinema);
     }
 }

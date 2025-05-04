@@ -7,6 +7,8 @@ export class CinemaDTO{
     phonenumber:string;
     maxroom:number;
     imagename:string;
+    isactive:boolean;
+
     constructor(data:any){
         this.id=data.id;
         this.name=data.name;
@@ -16,5 +18,6 @@ export class CinemaDTO{
         this.phonenumber=data.phonenumber;
         this.maxroom=data.maxroom;
         this.imagename=data.imagename;
+        this.isactive=data.isactive;
     }
 }

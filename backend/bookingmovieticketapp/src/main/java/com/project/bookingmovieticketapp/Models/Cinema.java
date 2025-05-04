@@ -29,4 +29,5 @@ public class Cinema {
     private String phonenumber;
     private int maxroom;
     private String imagename;
+    private boolean isactive;
 }

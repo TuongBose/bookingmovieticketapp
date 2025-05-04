@@ -7,6 +7,7 @@ class Cinema {
   final String phoneNumber;
   final int maxRoom;
   String? imageName;
+  final bool isActive;
 
   Cinema({
     required this.id,
@@ -17,6 +18,7 @@ class Cinema {
     required this.phoneNumber,
     required this.maxRoom,
     this.imageName,
+    required this.isActive,
   });
 
   factory Cinema.fromJson(Map<String, dynamic> json) => Cinema(
@@ -28,5 +30,6 @@ class Cinema {
     phoneNumber: json['phonenumber'],
     maxRoom: json['maxroom'],
     imageName: json['imagename'],
+    isActive: json['isactive'],
   );
 }

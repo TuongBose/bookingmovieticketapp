@@ -24,7 +24,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class CastService implements ICastService {
-
     private final MovieRepository movieRepository;
     private final CastRepository castRepository;
 

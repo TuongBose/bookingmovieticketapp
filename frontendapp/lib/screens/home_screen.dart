@@ -52,7 +52,7 @@ class HomeScreenState extends State<HomeScreen> {
         _moviesNowPlaying = (results[0] as List<Movie>);
         _moviesUpComing = (results[1] as List<Movie>);
         _cinemas = (results[2] as List<Cinema>);
-        _filteredCinemas = _cinemas;
+        _filteredCinemas = _cinemas.where((cinema) =>cinema.isActive).toList();
         _isLoading = false;
       });
 
@@ -124,7 +124,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   List<String> getUniqueCities() {
     // Sử dụng _cinemas (dữ liệu gốc) thay vì _filteredCinemas
-    final cities = _cinemas.map((cinema) => cinema.city).toSet().toList();
+    final cities = _filteredCinemas.map((cinema) => cinema.city).toSet().toList();
     cities.insert(0, "Toàn quốc");
     return cities;
   }

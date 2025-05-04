@@ -36,7 +36,8 @@ CREATE TABLE cinemas (
     address VARCHAR(255) NOT NULL,
     phonenumber VARCHAR(20),
     maxroom INT,
-    imagename VARCHAR(100)
+    imagename VARCHAR(100),
+    isactive BIT DEFAULT 1
 );
 
 CREATE TABLE rooms (
@@ -130,16 +131,30 @@ CREATE TABLE casts (
 
 INSERT INTO cinemas (name, city, coordinates, address, phonenumber, maxroom, imagename)
 VALUES
-    ('Galaxy Nguyễn Du', 'TP.HCM', '10.7790,106.6918', '116 Nguyễn Du, Quận 1, TP.HCM', '02838222888', 4, 'cinema_1_1746214967186.jpg'),
-    ('Galaxy Tân Bình', 'TP.HCM', '10.8012,106.6395', '246 Nguyễn Hồng Đào, Quận Tân Bình, TP.HCM', '02838496088', 5, 'cinema_2_1746215174736.jpg'),
-    ('Galaxy Quang Trung', 'TP.HCM', '10.8491,106.6239', '304A Quang Trung, Quận Gò Vấp, TP.HCM', '02839890188', 6, 'cinema_3_1746215224604.jpg'),
-    ('Galaxy Cần Thơ', 'Cần Thơ', '10.0321,105.7679', 'Lầu 4, TTTM Sense City, 1 Đại lộ Hòa Bình, Quận Ninh Kiều, Cần Thơ', '02923769888', 5, 'cinema_4_1746215349988.jpg'),
-    ('Galaxy Đà Nẵng', 'Đà Nẵng', '16.0678,108.2235', 'Tầng 3, TTTM Indochina Riverside Mall, 74 Bạch Đằng, Quận Hải Châu, Đà Nẵng', '02363829888', 4, 'cinema_5_1746215401993.jpg'),
-    ('Galaxy Linh Trung', 'TP.HCM', '10.8692,106.7796', 'Tầng 2, TTTM Vincom Thủ Đức, 216 Võ Văn Ngân, Quận Thủ Đức, TP.HCM', '02837202888', 6, 'cinema_6_1746215477736.jpg'),
-    ('Galaxy Huỳnh Tấn Phát', 'TP.HCM', '10.7395,106.7298', '1362 Huỳnh Tấn Phát, Quận 7, TP.HCM', '02838739888', 5, 'cinema_7_1746215524120.jpg'),
-    ('Galaxy Sala', 'TP.HCM', '10.7896,106.7525', 'Tầng 2, TTTM Takashimaya, 92-94 Nam Kỳ Khởi Nghĩa, Quận 1, TP.HCM', '02838233888', 7, 'cinema_8_1746215129247.jpg'),
-    ('Galaxy Bến Thành', 'TP.HCM', '10.7735,106.6982', 'Tầng 5, TTTM Vạn Hạnh Mall, 11 Sư Vạn Hạnh, Quận 10, TP.HCM', '02838651888', 4, 'cinema_9_1746215628582.jpg'),
-    ('Galaxy Hải Phòng', 'Hải Phòng', '20.8449,106.6881', 'Tầng 5, TTTM Vincom Plaza Lê Thánh Tông, 1 Lê Thánh Tông, Quận Ngô Quyền, Hải Phòng', '02253856888', 5, 'cinema_10_1746215725572.jpg');
+    ('Galaxy Nguyễn Du', 'Thành phố Hồ Chí Minh', '10.773307, 106.693373', '116 Nguyễn Du, Quận 1, TP.HCM', '19002224', 4, 'cinema_1_1746214967186.jpg'),
+    ('Galaxy Tân Bình', 'Thành phố Hồ Chí Minh', '10.790432, 106.640716', '246 Nguyễn Hồng Đào, Quận Tân Bình, TP.HCM', '19002224', 5, 'cinema_2_1746215174736.jpg'),
+    ('Galaxy Quang Trung', 'Thành phố Hồ Chí Minh', '10.834759, 106.662373', 'Lầu 3, TTTM CoopMart Foodcosa số 304A, Quang Trung, P.11, Q. Gò Vấp, Tp.HCM', '19002224', 6, 'cinema_3_1746215224604.jpg'),
+    ('Galaxy Long Xuyên', 'Tỉnh An Giang', '10.384155, 105.436843', 'Tầng 1, TTTM Nguyễn Kim, số 01 Trần Hưng Đạo, Phường Mỹ Bình, Thành phố Long Xuyên', '19002224', 5, 'cinema_4_1746375169224.jpg'),
+    ('Galaxy Đà Nẵng', 'Thành phố Đà Nẵng', '16.066701, 108.186900', 'Tầng 3, TTTM Coop Mart, 478 Điện Biên Phủ, Quận Thanh Khê, Đà Nẵng', '19002224', 4, 'cinema_5_1746215401993.jpg'),
+    ('Galaxy Co.opXtra Linh Trung', 'Thành phố Hồ Chí Minh', '10.867896, 106.776687', 'Tầng trệt, TTTM Co.opXtra Linh Trung, số 934 Quốc Lộ 1A, Phường Linh Trung, Quận Thủ Đức, Thành phố Hồ Chí Minh, Việt Nam', '19002224', 6, 'cinema_6_1746375325231.jpg'),
+    ('Galaxy Huỳnh Tấn Phát', 'Thành phố Hồ Chí Minh', '10.712225, 106.736575', 'Lầu 2, TTTM Coopmart, số 1362 Huỳnh Tấn Phát, khu phố 1, Phường Phú Mỹ, Quận 7, Tp.Hồ Chí Minh, Việt Nam.', '19002224', 5, 'cinema_7_1746215524120.jpg'),
+    ('Galaxy Sala', 'Thành phố Hồ Chí Minh', '10.771500, 106.721782', 'Tầng 3, Thiso Mall Sala, 10 Mai Chí Thọ, Phường Thủ Thiêm, Thành phố Thủ Đức', '19002224', 7, 'cinema_8_1746215129247.jpg'),
+    ('Galaxy Hải Phòng', 'Thành phố Hải Phòng', '20.856159, 106.686521', 'Lầu 7, TTTM Nguyễn Kim - Sài Gòn Mall, số 104 Lương Khánh Thiện', '19002224', 5, 'cinema_9_1746375448482.jpg'),
+    ('Galaxy Kinh Dương Vương', 'Thành phố Hồ Chí Minh', '10.749503, 106.628778', '718 Kinh Dương Vương, Quận 6, TP.HCM', '19002224', 5, 'cinema_10_1746375548086.jpg'),
+    ('Galaxy Bến Tre', 'Tỉnh Bến Tre', '10.241207, 106.376721', 'Lầu 1, TTTM Sense City 26A Trần Quốc Tuấn, Phường An Hội, TP. Bến Tre', '19002224', 5, 'cinema_11_1746375599036.jpg'),
+    ('Galaxy Mipec Long Biên', 'Thành phố Hà Nội', '21.045421, 105.866193', 'Tầng 6, TTTM Mipec Long Biên, Số 2, Phố Long Biên 2, Ngọc Lâm, Long Biên, Hà Nội', '19002224', 5, 'cinema_12_1746375758125.jpg'),
+	('Galaxy Cà Mau', 'Tỉnh Cà Mau', '9.177908, 105.154540', 'Lầu 2, TTTM Sense City, số 9, Trần Hưng Đạo, P.5, Tp. Cà Mau', '19002224', 5, 'cinema_13_1746375846069.jpg'),
+    ('Galaxy Trung Chánh', 'Thành phố Hồ Chí Minh', '10.855339, 106.608343', 'TTVH Quận 12, Số 09 Quốc Lộ 22, P. Trung Mỹ Tây, Quận 12', '19002224', 5, 'cinema_14_1746375944257.jpg'),
+    ('Galaxy Vinh', 'Tỉnh Nghệ An', '18.676724, 105.677608', 'Lầu 5, Trung tâm Giải Trí City HUB – số 1 Lê Hồng Phong, thành phố Vinh', '19002224', 5, 'cinema_15_1746376009746.jpg'),
+    ('Galaxy Nguyễn Văn Quá', 'Thành phố Hồ Chí Minh', '10.847156, 106.634100', '119B Nguyễn Văn Quá, Phường Đông Hưng Thuận, Quận 12', '19002224', 5, 'cinema_16_1746376125934.jpg'),
+	('Galaxy Buôn Ma Thuột', 'Tỉnh Đắk Lắk', '12.692365, 108.062186', 'Tầng trệt, TTTM Coop Mart Buôn Ma Thuột, số 71 Nguyễn Tất Thành, Phường Tân An, Tp. Buôn Ma Thuột, Tỉnh Đắk Lắk, Việt Nam', '19002224', 5, 'cinema_17_1746376188767.jpg'),
+    ('Galaxy Nha Trang Center', 'Tỉnh Khánh Hòa', '12.248043, 109.196326', 'Tầng 3, Trung Tâm Thương Mại Nha Trang Center - 20 Trần Phú, Nha Trang, Khánh Hòa', '19002224', 5, 'cinema_18_1746376268601.jpg'),
+    ('Galaxy Trường Chinh', 'Thành phố Hồ Chí Minh', '10.818052, 106.630815', 'Tầng 3 - Co.opMart TTTM Thắng Lợi - Số 2 Trường Chinh, Tây Thạnh, Tân Phú, Thành phố Hồ Chí Minh', '19002224', 5, 'cinema_19_1746376314673.jpg'),
+    ('Galaxy GO! Mall Bà Rịa', 'Tỉnh Bà Rịa - Vũng Tàu', '10.492306, 107.169138', 'Tầng 3 TTTM GO! Bà Rịa, Số 2A đường Nguyễn Đình Chiểu, KP1, P. Phước Hiệp, TP. Bà Rịa, Tỉnh Bà Rịa-Vũng Tàu', '19002224', 5, 'cinema_20_1746376394994.jpg'),
+    ('Galaxy Cine+ Gold Coast Nha Trang', 'Tỉnh Khánh Hòa', '12.247836, 109.194918', 'Tầng 8, TTTM Gold Coast Nha Trang - Số 1 Trần Hưng Đạo, P. Lộc Thọ, TP. Nha Trang', '19002224', 5, 'cinema_21_1746376448605.jpg'),
+    ('Galaxy Cine+ Thiso Phan Huy Ích', 'Thành phố Hồ Chí Minh', '10.841520, 106.637373', 'Tầng 4 TTTM Thiso Mall Trường Chinh - Phan Huy Ích - 385 Phan Huy Ích, Phường 14, Quận Gò Vấp, TP. HCM', '19002224', 5, 'cinema_22_1746376485825.jpg'),
+    ('Galaxy Aeon Mall Huế', 'Thành phố Huế', '16.454693, 107.615367', 'Galaxy Aeon Mall Huế - Tầng 4 TTTM Aeon Mall Huế, Cửa số 5 và số 6, Sảnh Đỗ Quyên, ​8 Võ Nguyên Giáp, An Đông, Huế, Thừa Thiên - Huế', '19002224', 5, 'cinema_23_1746376523036.jpg'),
+    ('Galaxy Parc Mall Q8', 'Thành phố Hồ Chí Minh', '10.740289, 106.678833', 'Tầng 4 TTTM Parc Mall, 547-549 Tạ Quang Bửu, Phường 4, Quận 8', '19002224', 5, 'cinema_24_1746376581868.jpg');
     
 USE bookingmovieticketapp;
 SELECT * FROM users;
@@ -162,7 +177,7 @@ VALUES
 
 INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, createdat, isactive, rolename)
 VALUES 
-('Bui Teo Eo Lai', 'ntrngtai@example.com', '555', '999', '30/4/1975', '2000-12-12', '2025-04-21 14:30:00', 1, 1),
+('Bui Teo Eo Lai', 'ntrngtai@example.com', '555', '888', '30/4/1975', '2000-12-12', '2025-04-21 14:30:00', 1, 1),
 ('Nguyen Van A', 'nguyenvana@example.com', 'password123', '0905123456888', '123 Đường Láng, Hà Nội', '1990-05-15', '2025-04-21 14:30:00', 1, 1);
 
 INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)

@@ -18,6 +18,7 @@ import { ListBookingComponent } from './list-booking/list-booking.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { ShowtimeDetailDialogComponent } from './list-showtime/showtime-detail-dialog.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,7 @@ import { ShowtimeDetailDialogComponent } from './list-showtime/showtime-detail-d
     NgChartsModule,
     MatDialogModule,
     MatButtonModule,
+    NgbModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

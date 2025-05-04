@@ -8,6 +8,8 @@ import com.project.bookingmovieticketapp.Repositories.SeatRepository;
 import com.project.bookingmovieticketapp.Responses.SeatResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SeatService implements ISeatService{
+    private static final Logger logger = LoggerFactory.getLogger(SeatService.class);
+
     private final RoomRepository roomRepository;
     private final SeatRepository seatRepository;
 
@@ -40,7 +44,7 @@ public class SeatService implements ISeatService{
         // Kiểm tra xem phòng đã có ghế chưa
         List<Seat> existingSeats = seatRepository.findByRoom(room);
         if (!existingSeats.isEmpty()) {
-            System.out.println("Seats already exist for room " + room.getName() + " (ID: " + roomId + ")");
+            logger.info("Seats already exist for room {} (ID: {})", room.getName(), room.getId());
             return; // Bỏ qua nếu ghế đã tồn tại
         }
 
@@ -66,7 +70,7 @@ public class SeatService implements ISeatService{
 
                 // Lưu ghế vào database
                 seatRepository.save(seat);
-                System.out.println("Created seat " + seatNumber + " for room " + room.getName() + " (ID: " + roomId + ")");
+                logger.info("Created seat {} for room {} (ID: {})", seatNumber, room.getName(), room.getId());
             }
         }
     }

@@ -66,7 +66,7 @@ export class ListCustomerComponent implements OnInit {
 
   onImageError(event: Event, userId: number): void {
     const imgElement = event.target as HTMLImageElement;
-    imgElement.src = 'assets/images/no_image.jpg'; // Chuyển sang hình mặc định khi lỗi
+    imgElement.src = 'https://yt3.googleusercontent.com/ytc/AIdro_nml8pToD7yNeAVIPMck_emdM0lt4pFCI_i-y_k0EFUzyg=s900-c-k-c0x00ffffff-no-rj'; 
     console.warn(`Failed to load image for user ID ${userId}, using default image.`);
   }
 }

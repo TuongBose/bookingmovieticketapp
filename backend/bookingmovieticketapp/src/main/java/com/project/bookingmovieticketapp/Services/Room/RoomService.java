@@ -7,8 +7,11 @@ import com.project.bookingmovieticketapp.Repositories.CinemaRepository;
 import com.project.bookingmovieticketapp.Repositories.RoomRepository;
 import com.project.bookingmovieticketapp.Repositories.SeatRepository;
 import com.project.bookingmovieticketapp.Responses.RoomResponse;
+import com.project.bookingmovieticketapp.Services.Cast.CastService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +22,8 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class RoomService implements IRoomService {
+    private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
+
     private final CinemaRepository cinemaRepository;
     private final RoomRepository roomRepository;
 
@@ -40,7 +45,7 @@ public class RoomService implements IRoomService {
         // Kiểm tra xem rạp đã có phòng chưa
         List<Room> existingRooms = roomRepository.findByCinema(cinema);
         if (existingRooms.size() >= maxRooms) {
-            System.out.println("Rooms already exist for cinema " + cinema.getName() + " (ID: " + cinema.getId() + ")");
+            logger.info("Rooms already exist for cinema {} (ID: {})", cinema.getName(), cinema.getId());
             return; // Bỏ qua nếu đã đủ số phòng
         }
 
@@ -68,7 +73,7 @@ public class RoomService implements IRoomService {
                     .build();
 
             roomRepository.save(room);
-            System.out.println("Created room " + roomName + " for cinema " + cinema.getName() + " (ID: " + cinema.getId() + ")");
+            logger.info("Created room {} for cinema {} (ID: {})", roomName, cinema.getName(), cinema.getId());
         }
     }
 

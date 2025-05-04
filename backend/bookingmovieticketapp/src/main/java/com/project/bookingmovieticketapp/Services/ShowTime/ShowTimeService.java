@@ -3,8 +3,11 @@ package com.project.bookingmovieticketapp.Services.ShowTime;
 import com.project.bookingmovieticketapp.Models.*;
 import com.project.bookingmovieticketapp.Repositories.*;
 import com.project.bookingmovieticketapp.Responses.ShowTimeResponse;
+import com.project.bookingmovieticketapp.Services.Seat.SeatService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,6 +21,8 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class ShowTimeService implements IShowTimeService {
+    private static final Logger logger = LoggerFactory.getLogger(ShowTimeService.class);
+
     private final ShowTimeRepository showTimeRepository;
     private final RoomRepository roomRepository;
     private final CinemaRepository cinemaRepository;
@@ -37,7 +42,7 @@ public class ShowTimeService implements IShowTimeService {
         Random random = new Random();
 
         if (movies.isEmpty() || rooms.isEmpty()) {
-            System.out.println("No movies or rooms available to generate showtimes.");
+            logger.info("No movies or rooms available to generate showtimes.");
             return;
         }
 
@@ -103,8 +108,7 @@ public class ShowTimeService implements IShowTimeService {
                             .build();
 
                     showTimeRepository.save(showtime);
-                    System.out.println("Created showtime for movie " + movie.getName() +
-                            " in room " + room.getName() + " at " + startTime);
+                    logger.info("Created showtime for movie {} in room {} at {}", movie.getName(), room.getName(), startTime);
                 }
             }
             currentDate = currentDate.plusDays(1);
@@ -161,7 +165,7 @@ public class ShowTimeService implements IShowTimeService {
     }
 
     @Override
-    public void updateShowTimeStatus(int id, boolean isActive) {
+    public void updateShowTimeStatus(int id, boolean isActive) throws Exception {
         ShowTime showTime = showTimeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Suất chiếu không tồn tại."));
         showTime.setIsactive(isActive);
