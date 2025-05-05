@@ -1,5 +1,6 @@
 package com.project.bookingmovieticketapp.Services.ShowTime;
 
+import com.project.bookingmovieticketapp.DTOs.showtimeDTO;
 import com.project.bookingmovieticketapp.Models.ShowTime;
 import com.project.bookingmovieticketapp.Responses.ShowTimeResponse;
 
@@ -11,4 +12,5 @@ public interface IShowTimeService {
     ShowTimeResponse getShowTimeById(int id) throws Exception;
     void updateShowTimeStatus(int id, boolean isActive) throws Exception;
     long getBookingsCountForShowTime(int showTimeId);
+    ShowTime createShowTime(showtimeDTO showTimeDTO) throws Exception;
 }

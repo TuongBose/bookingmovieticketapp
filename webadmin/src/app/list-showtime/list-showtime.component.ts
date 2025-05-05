@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { ShowtimeDTO } from '../dtos/showtime.dto';
 import { ShowTimeService } from '../services/showtime.service';
 import { CinemaDTO } from '../dtos/cinema.dto';
 import { CinemaService } from '../services/cinema.service';
 import { MovieDTO } from '../dtos/movie.dto';
 import { MovieService } from '../services/movie.service';
-import { MatDialog } from '@angular/material/dialog';
-import { ShowtimeDetailDialogComponent } from './showtime-detail-dialog.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { RoomDTO } from '../dtos/room.dto';
+import { RoomService } from '../services/room.service';
+import { catchError, timeout, throwError } from 'rxjs';
 
 @Component({
     selector: 'app-list-showtime',
@@ -19,6 +21,7 @@ export class ListShowtimeComponent implements OnInit {
     showtimesByMovie: { movieId: number, movieName: string, showtimes: ShowtimeDTO[], posterURL: string }[] = [];
     cinemas: CinemaDTO[] = [];
     movies: MovieDTO[] = [];
+    rooms: RoomDTO[] = [];
     selectedCinemaId: number | null = null;
     selectedDate: string | null = null;
     selectedMovieId: number | null = null;
@@ -27,12 +30,28 @@ export class ListShowtimeComponent implements OnInit {
     successMessage: string | null = null;
     isLoading: boolean = false;
     bookingsCountMap: Map<number, number> = new Map();
+    selectedShowtime: ShowtimeDTO | null = null;
+    selectedShowtimeMovieName: string = '';
+
+    @ViewChild('addShowtimeModal') addShowtimeModal!: TemplateRef<any>;
+    @ViewChild('showtimeDetailModal') showtimeDetailModal!: TemplateRef<any>;
+
+    // Dữ liệu cho form thêm suất chiếu (độc lập với bộ lọc)
+    newShowtime = {
+        cinemaId: 0,
+        movieId: 0,
+        roomId: 0,
+        showdate: '',
+        starttime: '',
+        price: 0
+    };
 
     constructor(
         private showTimeService: ShowTimeService,
         private cinemaService: CinemaService,
         private movieService: MovieService,
-        private dialog: MatDialog
+        private roomService: RoomService,
+        private modalService: NgbModal
     ) { }
 
     ngOnInit(): void {
@@ -78,7 +97,7 @@ export class ListShowtimeComponent implements OnInit {
 
     fetchShowtimes(): void {
         if (!this.selectedCinemaId || !this.selectedDate) {
-            this.errorMessage = 'Vui lòng chọn rạp và ngày.';
+            this.errorMessage = 'Vui lòng chọn rạp và ngày để tìm kiếm.';
             console.warn('[fetchShowtimes] Thiếu rạp hoặc ngày:', {
                 selectedCinemaId: this.selectedCinemaId,
                 selectedDate: this.selectedDate
@@ -135,7 +154,6 @@ export class ListShowtimeComponent implements OnInit {
     }
 
     filterAndGroupShowtimes(): void {
-        // Nếu không có dữ liệu suất chiếu, không cần xử lý tiếp
         if (!this.showtimes || this.showtimes.length === 0) {
             this.showtimesByMovie = [];
             return;
@@ -143,20 +161,16 @@ export class ListShowtimeComponent implements OnInit {
 
         let filteredShowtimes = [...this.showtimes];
 
-        // Xóa thông báo lỗi trước khi lọc
         this.errorMessage = null;
 
-        // Lọc theo trạng thái hoạt động
         if (this.showOnlyActive) {
             filteredShowtimes = filteredShowtimes.filter(showtime => showtime.isactive);
         }
 
-        // Lọc theo phim
         if (this.selectedMovieId !== null && this.selectedMovieId !== undefined) {
             filteredShowtimes = filteredShowtimes.filter(showtime => showtime.movieId === this.selectedMovieId);
         }
 
-        // Nhóm suất chiếu theo phim
         const groupedShowtimes = new Map<number, ShowtimeDTO[]>();
         filteredShowtimes.forEach(showtime => {
             if (!groupedShowtimes.has(showtime.movieId)) {
@@ -180,7 +194,6 @@ export class ListShowtimeComponent implements OnInit {
             })
             .sort((a, b) => a.movieName.localeCompare(b.movieName));
 
-        // Hiển thị thông báo nếu không có suất chiếu sau khi lọc
         if (this.showtimes.length > 0 && this.showtimesByMovie.length === 0 && (this.selectedMovieId !== null || this.showOnlyActive)) {
             this.errorMessage = 'Không có suất chiếu nào khớp với bộ lọc của bạn.';
         }
@@ -201,10 +214,10 @@ export class ListShowtimeComponent implements OnInit {
     viewDetails(showtimeId: number): void {
         this.showTimeService.getShowTimeById(showtimeId).subscribe({
             next: (showtime) => {
-                this.dialog.open(ShowtimeDetailDialogComponent, {
-                    width: '400px',
-                    data: showtime
-                });
+                this.selectedShowtime = showtime;
+                const movie = this.movies.find(m => m.id === showtime.movieId);
+                this.selectedShowtimeMovieName = movie?.name || `Phim ${showtime.movieId}`;
+                this.modalService.open(this.showtimeDetailModal, { ariaLabelledBy: 'modal-basic-title' });
             },
             error: (error) => {
                 this.errorMessage = 'Không thể lấy chi tiết suất chiếu: ' + error.message;
@@ -226,5 +239,129 @@ export class ListShowtimeComponent implements OnInit {
                 console.error(`[toggleShowtimeStatus] Lỗi khi cập nhật trạng thái suất chiếu ${showtimeId}:`, error);
             }
         });
+    }
+
+    openAddShowtimeModal(): void {
+        // Không phụ thuộc vào selectedCinemaId và selectedDate từ bộ lọc
+        this.newShowtime = {
+            cinemaId: 0,
+            movieId: 0,
+            roomId: 0,
+            showdate: '',
+            starttime: '',
+            price: 0
+        };
+        this.errorMessage = null;
+        this.successMessage = null;
+
+        // Tải danh sách rạp, phim, và phòng để hiển thị trong modal
+        this.loadCinemasForModal();
+        this.loadMoviesForModal();
+        this.loadRoomsForModal(0); // Gọi với cinemaId mặc định, sẽ cập nhật khi chọn rạp
+        this.modalService.open(this.addShowtimeModal, { ariaLabelledBy: 'modal-basic-title' });
+    }
+
+    loadCinemasForModal(): void {
+        this.cinemaService.getAllCinema().subscribe({
+            next: (cinemas) => {
+                this.cinemas = cinemas;
+            },
+            error: (error) => {
+                this.errorMessage = 'Không thể tải danh sách rạp: ' + error.message;
+                console.error('[loadCinemasForModal] Lỗi khi lấy danh sách rạp:', error);
+            }
+        });
+    }
+
+    loadMoviesForModal(): void {
+        this.movieService.getAllMovie().subscribe({
+            next: (nowPlaying) => {
+                this.movies = nowPlaying;
+                this.movieService.getMovieUpComing().subscribe({
+                    next: (upcoming) => {
+                        this.movies = [...this.movies, ...upcoming];
+                    },
+                    error: (error) => {
+                        this.errorMessage = 'Không thể tải danh sách phim: ' + error.message;
+                        console.error('[loadMoviesForModal] Lỗi khi lấy danh sách phim:', error);
+                    }
+                });
+            },
+            error: (error) => {
+                this.errorMessage = 'Không thể tải danh sách phim: ' + error.message;
+                console.error('[loadMoviesForModal] Lỗi khi lấy danh sách phim:', error);
+            }
+        });
+    }
+
+    loadRoomsForModal(cinemaId: number): void {
+        if (cinemaId) {
+            this.roomService.getRoomsByCinemaId(cinemaId).subscribe({
+                next: (rooms) => {
+                    this.rooms = rooms;
+                },
+                error: (error) => {
+                    this.errorMessage = 'Không thể tải danh sách phòng: ' + error.message;
+                    console.error('[loadRoomsForModal] Lỗi khi lấy danh sách phòng:', error);
+                }
+            });
+        } else {
+            this.rooms = []; // Reset rooms nếu chưa chọn rạp
+        }
+    }
+
+    addShowtime(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    // Kiểm tra các trường bắt buộc
+    if (!this.newShowtime.cinemaId || !this.newShowtime.movieId || !this.newShowtime.roomId || 
+        !this.newShowtime.showdate || !this.newShowtime.starttime || !this.newShowtime.price) {
+        this.errorMessage = 'Vui lòng điền đầy đủ thông tin.';
+        this.isLoading = false;
+        return;
+    }
+
+    if (this.newShowtime.price < 80000) {
+        this.errorMessage = 'Giá vé phải lớn hơn hoặc bằng 80,000.';
+        this.isLoading = false;
+        return;
+    }
+
+    const fullStartTime = `${this.newShowtime.showdate}T${this.newShowtime.starttime}:00`;
+
+    const formData = new FormData();
+    formData.append('movieid', this.newShowtime.movieId.toString());
+    formData.append('roomid', this.newShowtime.roomId.toString());
+    formData.append('showdate', this.newShowtime.showdate);
+    formData.append('starttime', fullStartTime);
+    formData.append('price', this.newShowtime.price.toString());
+
+    this.showTimeService.createShowTime(formData).pipe(
+        timeout(10000),
+        catchError(error => {
+            console.error('Error adding showtime:', error);
+            this.isLoading = false;
+            this.errorMessage = 'Lỗi khi thêm suất chiếu: ' + (error.error?.error || error.message || 'Không xác định');
+            return throwError(() => new Error(error.message || 'Không xác định'));
+        })
+    ).subscribe({
+        next: (response: ShowtimeDTO) => {
+            this.isLoading = false;
+            this.modalService.dismissAll();
+            this.successMessage = 'Thêm suất chiếu thành công!';
+            setTimeout(() => this.successMessage = null, 3000);
+            this.newShowtime = { cinemaId: 0, movieId: 0, roomId: 0, showdate: '', starttime: '', price: 0 }; // Reset form
+            // Không thêm vào this.showtimes hoặc gọi filterAndGroupShowtimes
+        }
+    });
+}
+
+    // Cập nhật danh sách phòng khi chọn rạp trong modal
+    onCinemaChange(cinemaId: number): void {
+        this.newShowtime.cinemaId = cinemaId;
+        this.loadRoomsForModal(cinemaId);
+        this.newShowtime.roomId = 0; // Reset roomId khi thay đổi rạp
     }
 }

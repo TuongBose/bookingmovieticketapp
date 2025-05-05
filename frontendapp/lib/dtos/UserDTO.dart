@@ -5,6 +5,7 @@ class UserDTO{
   final String retypepassword;
   final String phonenumber;
   final String dateofbirth;
+  String? address;
 
   UserDTO({
     required this.name,
@@ -13,6 +14,7 @@ class UserDTO{
     required this.retypepassword,
     required this.phonenumber,
     required this.dateofbirth,
+    this.address,
   });
 
   Map<String,dynamic> toJson() {
@@ -23,6 +25,7 @@ class UserDTO{
       'retypepassword': retypepassword,
       'phonenumber': phonenumber,
       'dateofbirth': dateofbirth,
+      'address': address,
     };
   }
 }

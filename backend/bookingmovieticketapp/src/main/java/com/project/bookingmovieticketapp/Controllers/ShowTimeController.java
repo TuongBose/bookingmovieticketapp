@@ -1,5 +1,7 @@
 package com.project.bookingmovieticketapp.Controllers;
 
+import com.project.bookingmovieticketapp.DTOs.BookingDTO;
+import com.project.bookingmovieticketapp.DTOs.showtimeDTO;
 import com.project.bookingmovieticketapp.Models.ShowTime;
 import com.project.bookingmovieticketapp.Responses.ShowTimeResponse;
 import com.project.bookingmovieticketapp.Services.ShowTime.ShowTimeService;
@@ -7,9 +9,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +74,36 @@ public class ShowTimeController {
         try {
             long bookingsCount = showTimeService.getBookingsCountForShowTime(id);
             return ResponseEntity.ok(bookingsCount);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<?> createShowtime(
+            @RequestParam("movieid") int movieid,
+            @RequestParam("roomid") int roomid,
+            @RequestParam("showdate") String showdate,
+            @RequestParam("starttime") String starttime,
+            @RequestParam("price") int price
+    ) {
+        try {
+            // Chuyển đổi showdate và starttime từ chuỗi thành LocalDate và LocalDateTime
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            LocalDate parsedShowdate = LocalDate.parse(showdate, dateFormatter);
+            LocalDateTime parsedStarttime = LocalDateTime.parse(starttime, dateTimeFormatter);
+
+            // Tạo showtimeDTO
+            showtimeDTO showtimeDTO = new showtimeDTO();
+            showtimeDTO.setMovieid(movieid);
+            showtimeDTO.setRoomid(roomid);
+            showtimeDTO.setShowdate(parsedShowdate);
+            showtimeDTO.setStarttime(parsedStarttime);
+            showtimeDTO.setPrice(price);
+
+            ShowTime createdShowtime = showTimeService.createShowTime(showtimeDTO);
+            return ResponseEntity.ok(createdShowtime);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

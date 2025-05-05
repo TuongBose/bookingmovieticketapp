@@ -14,4 +14,5 @@ public interface IUserService {
     User updateUserStatus(int userId, boolean isActive);
     User getUserById(int id) throws Exception;
     void saveUser(User user);
+    User updateUser(int id, UserDTO userDTO) throws Exception;
 }

@@ -1,7 +1,9 @@
 package com.project.bookingmovieticketapp.Controllers;
 
+import com.project.bookingmovieticketapp.DTOs.RoomDTO;
 import com.project.bookingmovieticketapp.DTOs.UserDTO;
 import com.project.bookingmovieticketapp.DTOs.UserLoginDTO;
+import com.project.bookingmovieticketapp.Models.Room;
 import com.project.bookingmovieticketapp.Models.User;
 import com.project.bookingmovieticketapp.Services.User.UserService;
 import jakarta.validation.Valid;
@@ -197,6 +199,16 @@ public class UserController {
     public ResponseEntity<?> getUserById(@Valid @PathVariable int id) {
         try {
             return ResponseEntity.ok(userService.getUserById(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser (@PathVariable int id, @RequestBody UserDTO userDTO) {
+        try {
+            User updateUser = userService.updateUser(id, userDTO);
+            return ResponseEntity.ok(updateUser);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

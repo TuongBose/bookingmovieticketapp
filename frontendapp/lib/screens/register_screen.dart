@@ -65,6 +65,7 @@ class _DangKyScreenState extends State<DangKyScreen> {
         dateofbirth: _selectedDate != null
             ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
             : '1990-01-01', // Sửa giá trị mặc định cho hợp lý
+        address: null
       );
 
       await _userService.createUser(userDTO);

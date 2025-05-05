@@ -67,6 +67,21 @@ export class UserService {
       .pipe(catchError(this.handleError));
   }
 
+  updateUser(userId: number, userData: any): Observable<any> {
+    const headers = new HttpHeaders()
+    .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .set('Authorization', `Bearer ${localStorage.getItem('access_token')}`); // Thêm token vào header nếu cần
+    return this.http.put(`${Environment.apiBaseUrl}/users/${userId}`, userData, {
+      headers: headers,
+      withCredentials: true,
+    }).pipe(
+      timeout(5000),
+      retry(1),
+      catchError(this.handleError)
+    );
+  }
+
   private mapToUsers(apiUsers: any[]): UserDTO[] {
     return apiUsers.map(user => ({
       id: user.id,

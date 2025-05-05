@@ -146,4 +146,33 @@ public class RoomService implements IRoomService {
 
         return roomResponseList;
     }
+
+    @Override
+    public List<RoomResponse> getAllRooms() throws Exception {
+        List<Room> roomList = roomRepository.findAll();
+        List<RoomResponse> roomResponseList = new ArrayList<>();
+
+        for (Room room : roomList) {
+            RoomResponse newRoomResponse = RoomResponse.builder()
+                    .id(room.getId())
+                    .cinemaId(room.getCinema().getId())
+                    .name(room.getName())
+                    .seatcolumnmax(room.getSeatcolumnmax())
+                    .seatrowmax(room.getSeatrowmax())
+                    .build();
+            roomResponseList.add(newRoomResponse);
+        }
+
+        return roomResponseList;
+    }
+
+    @Override
+    public void deleteRoom(int id) throws Exception {
+        Room existingRoom = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy RoomId"));
+        roomRepository.delete(existingRoom);
+        logger.info("Deleted room ID: {}", id);
+    }
+
+
 }

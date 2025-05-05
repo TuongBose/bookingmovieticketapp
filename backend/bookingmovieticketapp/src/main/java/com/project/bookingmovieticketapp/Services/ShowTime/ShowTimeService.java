@@ -1,5 +1,6 @@
 package com.project.bookingmovieticketapp.Services.ShowTime;
 
+import com.project.bookingmovieticketapp.DTOs.showtimeDTO;
 import com.project.bookingmovieticketapp.Models.*;
 import com.project.bookingmovieticketapp.Repositories.*;
 import com.project.bookingmovieticketapp.Responses.ShowTimeResponse;
@@ -36,7 +37,7 @@ public class ShowTimeService implements IShowTimeService {
     }
 
     private void generateShowtimesForAllRooms() {
-// Lấy tất cả phòng và phim
+        // Lấy tất cả phòng và phim
         List<Room> rooms = roomRepository.findAll();
         List<Movie> movies = movieRepository.findAll();
         Random random = new Random();
@@ -203,5 +204,26 @@ public class ShowTimeService implements IShowTimeService {
             }
 
         return showTimeResponseList;
+    }
+
+    @Override
+    public ShowTime createShowTime(showtimeDTO showtimeDTO) throws Exception{
+        Movie existingMovie = movieRepository.findById(showtimeDTO.getMovieid())
+                .orElseThrow(()->new RuntimeException("Khong tim thay MovieId"));
+
+        Room existingRoom = roomRepository.findById(showtimeDTO.getRoomid())
+                .orElseThrow(()-> new RuntimeException("Khong tim thay RoomId"));
+
+        ShowTime newShowTime = ShowTime
+                .builder()
+                .movie(existingMovie)
+                .room(existingRoom)
+                .showdate(showtimeDTO.getShowdate())
+                .starttime(showtimeDTO.getStarttime())
+                .price(showtimeDTO.getPrice())
+                .isactive(true)
+                .build();
+        showTimeRepository.save(newShowTime);
+        return newShowTime;
     }
 }

@@ -107,4 +107,21 @@ public class UserService implements IUserService {
     public void saveUser(User user) {
         userRepository.save(user);
     }
+
+    @Override
+    public User updateUser(int id, UserDTO userDTO)
+    {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(()->new RuntimeException("Khong tim thay UserId"));
+
+        existingUser.setName(userDTO.getName());
+        existingUser.setEmail(userDTO.getEmail());
+        existingUser.setPassword(userDTO.getPassword());
+        existingUser.setAddress(userDTO.getAddress());
+        existingUser.setPhonenumber(userDTO.getPhonenumber());
+        existingUser.setDateofbirth(userDTO.getDateofbirth());
+
+        userRepository.save(existingUser);
+        return existingUser;
+    }
 }

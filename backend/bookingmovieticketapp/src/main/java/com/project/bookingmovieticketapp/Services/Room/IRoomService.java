@@ -11,4 +11,6 @@ public interface IRoomService {
     RoomResponse getRoomById(int id) throws Exception;
     Room updateRoom(int id, RoomDTO roomDTO) throws Exception;
     List<RoomResponse> getRoomByCinemaId(int cinemaId) throws Exception;
+    List<RoomResponse> getAllRooms() throws Exception;
+    void deleteRoom(int id) throws Exception;
 }

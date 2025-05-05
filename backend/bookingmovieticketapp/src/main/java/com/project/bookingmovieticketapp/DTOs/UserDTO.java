@@ -32,4 +32,6 @@ public class UserDTO {
     @NotNull(message = "Ngày sinh không được bỏ trống")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date dateofbirth;
+
+    private String address;
 }

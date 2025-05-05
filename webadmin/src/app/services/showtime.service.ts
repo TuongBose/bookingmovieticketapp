@@ -56,6 +56,20 @@ export class ShowTimeService {
             .pipe(catchError(this.handleError));
     }
 
+    createShowTime(formData: FormData): Observable<any> {
+        const headers = new HttpHeaders()
+            .set('Accept', 'application/json')
+            .set('Authorization', `Bearer ${localStorage.getItem('access_token')}`); // Thêm token vào header nếu cần
+        return this.http.post(`${Environment.apiBaseUrl}/showtimes`, formData, {
+            headers: headers,
+            withCredentials: true,
+        }).pipe(
+            timeout(5000),
+            retry(1),
+            catchError(this.handleError)
+        );
+    }
+
     private handleError(error: HttpErrorResponse): Observable<never> {
         let errorMessage = 'An error occurred';
         if (error.error instanceof ErrorEvent) {
