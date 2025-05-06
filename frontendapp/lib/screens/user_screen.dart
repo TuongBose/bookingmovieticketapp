@@ -252,7 +252,8 @@ class _UserScreenState extends State<UserScreen> {
       await _userService.uploadUserImage(_user!.id!, _selectedImage!);
 
       // Tạo tên file mới với timestamp để đảm bảo cập nhật
-      final newImageName = 'user_${_user!.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final newImageName =
+          'user_${_user!.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       final updatedUser = User(
         id: _user!.id,
@@ -363,44 +364,79 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildUserInfoSection() {
+    String? imageUrl;
+    if (_user?.imageName != null && _user!.imageName!.isNotEmpty) {
+      imageUrl =
+      '${AppConfig.BASEURL}/api/v1/users/${_user!.id}/image?v=$_cacheKey';
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Stack(
-            alignment: Alignment.bottomRight,
             children: [
-              _selectedImage != null
-                  ? CircleAvatar(
-                radius: 30,
-                backgroundImage: FileImage(File(_selectedImage!.path)),
+              CircleAvatar(
+                radius: 40,
                 backgroundColor: Colors.grey[200],
-              )
-                  : CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.grey[200],
-                backgroundImage: _user?.imageName != null && _user!.imageName!.isNotEmpty
+                // Hiển thị ảnh mới chọn nếu có
+                backgroundImage:
+                _selectedImage != null
+                    ? FileImage(File(_selectedImage!.path))
+                // Nếu không, hiển thị ảnh từ network hoặc placeholder
+                    : (imageUrl != null
                     ? NetworkImage(
-                  '${AppConfig.BASEURL}/api/v1/users/${_user!.id}/image?v=$_cacheKey',
+                  imageUrl,
                   headers: {'Cache-Control': 'no-cache'},
                 )
-                    : null,
-                child: _user?.imageName == null || _user!.imageName!.isEmpty
-                    ? const Icon(Icons.person, size: 30, color: Colors.grey)
+                    : const AssetImage(
+                  'assets/images/profile_placeholder.png',
+                ) // Placeholder mặc định
+                )
+                as ImageProvider<Object>?,
+                // Ép kiểu ImageProvider
+                onBackgroundImageError: (exception, stackTrace) {
+                  // Xử lý lỗi tải NetworkImage nếu cần
+                  print("Lỗi tải ảnh đại diện: $exception");
+                },
+                // Hiển thị icon người dùng nếu không có ảnh nào cả
+                child:
+                (_selectedImage == null && imageUrl == null)
+                    ? Icon(Icons.person, size: 40, color: Colors.grey[400])
                     : null,
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.camera_alt,
-                  size: 20,
-                  color: Colors.blue,
+
+              // --- Nút Icon Camera được định vị ---
+              Positioned(
+                bottom: 0, // Ghim xuống dưới
+                right: 0, // Ghim sang phải
+                child: Material(
+                  // Thêm nền trắng và hiệu ứng nhấn (tùy chọn)
+                  color: Colors.white,
+                  shape: const CircleBorder(),
+                  elevation: 1.0, // Đổ bóng nhẹ
+                  child: InkWell(
+                    // Để có hiệu ứng ripple
+                    onTap: _isUploading ? null : _pickImage,
+                    // Logic nhấn nút giữ nguyên
+                    customBorder: const CircleBorder(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      // Padding nhỏ quanh icon
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 18, // Kích thước icon camera
+                        color: Colors.blueAccent, // Màu icon
+                      ),
+                    ),
+                  ),
                 ),
-                onPressed: _isUploading ? null : _pickImage,
               ),
             ],
           ),
           const SizedBox(height: 8),
+          // --- Tên User ---
           Text(
             _user?.name ?? 'Unknown User',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
