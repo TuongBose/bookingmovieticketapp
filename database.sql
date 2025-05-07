@@ -129,6 +129,7 @@ CREATE TABLE casts (
     FOREIGN KEY (movieid) REFERENCES movies(id) ON DELETE CASCADE
 );
 
+-- Danh sach cac cinema mac dinh
 INSERT INTO cinemas (name, city, coordinates, address, phonenumber, maxroom, imagename)
 VALUES
     ('Galaxy Nguyễn Du', 'Thành phố Hồ Chí Minh', '10.773307, 106.693373', '116 Nguyễn Du, Quận 1, TP.HCM', '19002224', 4, 'cinema_1_1746214967186.jpg'),
@@ -156,6 +157,13 @@ VALUES
     ('Galaxy Aeon Mall Huế', 'Thành phố Huế', '16.454693, 107.615367', 'Galaxy Aeon Mall Huế - Tầng 4 TTTM Aeon Mall Huế, Cửa số 5 và số 6, Sảnh Đỗ Quyên, ​8 Võ Nguyên Giáp, An Đông, Huế, Thừa Thiên - Huế', '19002224', 5, 'cinema_23_1746376523036.jpg'),
     ('Galaxy Parc Mall Q8', 'Thành phố Hồ Chí Minh', '10.740289, 106.678833', 'Tầng 4 TTTM Parc Mall, 547-549 Tạ Quang Bửu, Phường 4, Quận 8', '19002224', 5, 'cinema_24_1746376581868.jpg');
     
+-- Danh sach cac user mac dinh
+INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, createdat, isactive, rolename)
+VALUES 
+	('Nguyen Van A', 'nguyenvana@example.com', 'password123', '0905123456', '123 Đường Láng, Hà Nội', '1990-05-15', '2025-04-21 14:30:00', 1, 0),
+	('Bui Teo Eo Lai', 'ntrngtai@example.com', '555', '888', '30/4/1975', '2000-12-12', '2025-04-21 14:30:00', 1, 1),
+	('Tran Thi B', 'tranthib@example.com', 'securepass456', '0987654321', '456 Nguyễn Huệ, TP.HCM', '1995-08-20', '2025-04-21 15:00:00', 1, 1);
+
 USE bookingmovieticketapp;
 SELECT * FROM users;
 SELECT * FROM movies;
@@ -169,33 +177,3 @@ SELECT * FROM bookingdetails;
 SELECT * FROM payments;
 SELECT * FROM ratings;
 SELECT * FROM movienews;
-
-INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, createdat, isactive, rolename)
-VALUES 
-('Nguyen Van A', 'nguyenvana@example.com', 'password123', '0905123456', '123 Đường Láng, Hà Nội', '1990-05-15', '2025-04-21 14:30:00', 1, 0),
-('Tran Thi B', 'tranthib@example.com', 'securepass456', '0987654321', '456 Nguyễn Huệ, TP.HCM', '1995-08-20', '2025-04-21 15:00:00', 1, 1);
-
-INSERT INTO users (name, email, password, phonenumber, address, dateofbirth, createdat, isactive, rolename)
-VALUES 
-('Bui Teo Eo Lai', 'ntrngtai@example.com', '555', '888', '30/4/1975', '2000-12-12', '2025-04-21 14:30:00', 1, 1),
-('Nguyen Van A', 'nguyenvana@example.com', 'password123', '0905123456888', '123 Đường Láng, Hà Nội', '1990-05-15', '2025-04-21 14:30:00', 1, 1);
-
-INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
-VALUES 
-(1, 1, '2025-05-21 10:30:00', 150000, 'CREDIT_CARD', 'COMPLETED', 0),
-(1, 2, '2025-05-21 11:00:00', 200000, 'CASH', 'PENDING', 1);
-
-INSERT INTO bookingdetails (bookingid, seatid, price)
-VALUES 
-(6, 1, 75000),
-(6, 2, 75000),
-(7, 3, 100000),
-(7, 4, 100000);
-
-INSERT INTO bookings (userid, showtimeid, bookingdate, totalprice, paymentmethod, paymentstatus, isactive)
-VALUES 
-(2, 148, '2025-05-21 10:30:00', 2500000, 'CREDIT_CARD', 'COMPLETED', 0);
-
-INSERT INTO bookingdetails (bookingid, seatid, price)
-VALUES 
-(2, 10, 75000);

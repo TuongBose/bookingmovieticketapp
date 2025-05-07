@@ -1,10 +1,13 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:frontendapp/screens/default_screen.dart';
 import 'package:frontendapp/screens/login_screen.dart';
 import 'package:frontendapp/screens/register_screen.dart';
 import 'package:frontendapp/screens/reset_password_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 

@@ -109,10 +109,9 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public User updateUser(int id, UserDTO userDTO)
-    {
+    public User updateUser(int id, UserDTO userDTO) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(()->new RuntimeException("Khong tim thay UserId"));
+                .orElseThrow(() -> new RuntimeException("Khong tim thay UserId"));
 
         existingUser.setName(userDTO.getName());
         existingUser.setEmail(userDTO.getEmail());
@@ -121,6 +120,41 @@ public class UserService implements IUserService {
         existingUser.setPhonenumber(userDTO.getPhonenumber());
         existingUser.setDateofbirth(userDTO.getDateofbirth());
 
+        userRepository.save(existingUser);
+        return existingUser;
+    }
+
+    @Override
+    public boolean checkExistsByphonenumber(String phoneNumber) {
+        Optional<User> userOptional = userRepository.findByphonenumber(phoneNumber);
+        if (userOptional.isEmpty())
+            return userRepository.existsByphonenumber(phoneNumber);
+
+        User existingUser = userOptional.get();
+        if (existingUser.isRolename()) {
+            return true;
+        }
+        return existingUser.isIsactive();
+    }
+
+    @Override
+    public boolean checkDoesNotExistsByphonenumber(String phoneNumber) {
+        Optional<User> userOptional = userRepository.findByphonenumber(phoneNumber);
+        if (userOptional.isEmpty()) return true;
+
+        User existingUser = userOptional.get();
+        if (existingUser.isRolename()) return true;
+        return !existingUser.isIsactive();
+    }
+
+    @Override
+    public User resetPassword(String phoneNumber, String password) throws Exception {
+        Optional<User> userOptional = userRepository.findByphonenumber(phoneNumber);
+        if (userOptional.isEmpty())
+            throw new RuntimeException("Số điện thoại này không tồn tại");
+
+        User existingUser = userOptional.get();
+        existingUser.setPassword(password);
         userRepository.save(existingUser);
         return existingUser;
     }

@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../dtos/UserDTO.dart';
 import '../services/UserService.dart';
+import 'confirm_otp_screen.dart';
 
 class DangKyScreen extends StatefulWidget {
   const DangKyScreen({super.key});
@@ -25,6 +27,61 @@ class _DangKyScreenState extends State<DangKyScreen> {
   bool _obscureConfirmPassword = true; // Trạng thái ẩn/hiện mật khẩu cho "Xác nhận mật khẩu"
 
   final UserService _userService = UserService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Hàm kiểm tra tất cả các trường không được bỏ trống
+  bool _validateAllFields() {
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập họ và tên')),
+      );
+      return false;
+    }
+    if (_emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập email')),
+      );
+      return false;
+    }
+    if (_phoneController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập số điện thoại')),
+      );
+      return false;
+    }
+    if (_passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập mật khẩu')),
+      );
+      return false;
+    }
+    if (_confirmPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng xác nhận mật khẩu')),
+      );
+      return false;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mật khẩu xác nhận không khớp')),
+      );
+      return false;
+    }
+    if (_selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn ngày sinh')),
+      );
+      return false;
+    }
+    if (_selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn giới tính')),
+      );
+      return false;
+    }
+
+    return true;
+  }
 
   // Hàm chọn ngày sinh
   Future<void> _selectDate(BuildContext context) async {
@@ -41,8 +98,8 @@ class _DangKyScreenState extends State<DangKyScreen> {
     }
   }
 
-  // Hàm xử lý đăng ký
-  Future<void> _register() async {
+  // Hàm gửi mã OTP với kiểm tra backend
+  Future<void> _sendOTP() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,43 +108,95 @@ class _DangKyScreenState extends State<DangKyScreen> {
       return;
     }
 
+    // Kiểm tra tất cả các trường không được bỏ trống
+    if (!_validateAllFields()) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
+    String phoneNumberRequest = _phoneController.text;
+    String phoneNumber = _phoneController.text;
+    if (!phoneNumber.startsWith('+84')) {
+      phoneNumber = '+84${phoneNumber.substring(1)}'; // Định dạng số điện thoại quốc tế
+    }
+
     try {
-      final userDTO = UserDTO(
-        name: _nameController.text,
-        email: _emailController.text,
-        password: _passwordController.text,
-        retypepassword: _confirmPasswordController.text,
-        phonenumber: _phoneController.text,
-        dateofbirth: _selectedDate != null
-            ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
-            : '1990-01-01', // Sửa giá trị mặc định cho hợp lý
-        address: null
-      );
-
-      await _userService.createUser(userDTO);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đăng ký thành công!')),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi đăng ký: $e')),
-        );
-      }
-      if (mounted) {
+      // Kiểm tra số điện thoại đã tồn tại chưa
+      bool exists = await _userService.checkExistingPhoneNumber(phoneNumberRequest);
+      if (exists) {
         setState(() {
           _isLoading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Số điện thoại đã được đăng ký')),
+        );
+        return;
       }
+
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+          _navigateToOTPScreen(credential.verificationId!);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Lỗi gửi OTP: ${e.message}')),
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          setState(() {
+            _isLoading = false;
+          });
+          _navigateToOTPScreen(verificationId);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          _navigateToOTPScreen(verificationId);
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi gửi OTP: $e')),
+      );
     }
+  }
+
+  // Chuyển hướng sang OTPScreen
+  void _navigateToOTPScreen(String verificationId) {
+    final userDTO = UserDTO(
+      name: _nameController.text,
+      email: _emailController.text,
+      password: _passwordController.text,
+      retypepassword: _confirmPasswordController.text,
+      phonenumber: _phoneController.text,
+      dateofbirth: _selectedDate != null
+          ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+          : '1990-01-01',
+      address: null,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConfirmOTPScreen(
+          verificationId: verificationId,
+          userDTO: userDTO,
+          phoneNumber: _phoneController.text,
+        ),
+      ),
+    );
   }
 
   @override
@@ -308,7 +417,7 @@ class _DangKyScreenState extends State<DangKyScreen> {
               ),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: _agreeToTerms ? _register : null,
+                onPressed: _agreeToTerms ? _sendOTP : null,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                   backgroundColor: _agreeToTerms ? Colors.blue : Colors.grey,

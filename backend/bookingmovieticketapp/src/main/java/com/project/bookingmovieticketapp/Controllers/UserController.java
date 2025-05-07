@@ -42,7 +42,7 @@ public class UserController {
                 return ResponseEntity.badRequest().body(errorMessages);
             }
 
-            if(!userDTO.getPassword().equals(userDTO.getRetypepassword()))
+            if (!userDTO.getPassword().equals(userDTO.getRetypepassword()))
                 return ResponseEntity.badRequest().body("Xác nhận mật khẩu không khớp");
 
             User newUser = userService.createUser(userDTO);
@@ -63,7 +63,7 @@ public class UserController {
                 List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            return ResponseEntity.ok(userService.loginCustomer(userLoginDTO.getPhonenumber(),userLoginDTO.getPassword()));
+            return ResponseEntity.ok(userService.loginCustomer(userLoginDTO.getPhonenumber(), userLoginDTO.getPassword()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -79,19 +79,19 @@ public class UserController {
                 List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            return ResponseEntity.ok(userService.loginAdmin(userLoginDTO.getPhonenumber(),userLoginDTO.getPassword()));
+            return ResponseEntity.ok(userService.loginAdmin(userLoginDTO.getPhonenumber(), userLoginDTO.getPassword()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping("/admin")
-    public ResponseEntity<?> getAllUserAdmin(){
+    public ResponseEntity<?> getAllUserAdmin() {
         return ResponseEntity.ok(userService.getAllUserAdmin());
     }
 
     @GetMapping("/customer")
-    public ResponseEntity<?> getAllUserCustomer(){
+    public ResponseEntity<?> getAllUserCustomer() {
         return ResponseEntity.ok(userService.getAllUserCustomer());
     }
 
@@ -205,10 +205,42 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser (@PathVariable int id, @RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody UserDTO userDTO) {
         try {
             User updateUser = userService.updateUser(id, userDTO);
             return ResponseEntity.ok(updateUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/checkexistphonenumber/{phonenumber}")
+    public ResponseEntity<?> checkExistsByphonenumber(@PathVariable String phonenumber) {
+        if (userService.checkExistsByphonenumber(phonenumber))
+            return ResponseEntity.ok("{\"status\": \"exists\", \"message\": \"Số điện thoại đã tồn tại\"}");
+        else
+            return ResponseEntity.ok("{\"status\": \"available\", \"message\": \"Số điện thoại có thể sử dụng\"}");
+    }
+
+    @GetMapping("/checkdoesnotexistphonenumber/{phonenumber}")
+    public ResponseEntity<?> checkDoesNotExistsByphonenumber(@PathVariable String phonenumber) {
+        if (userService.checkDoesNotExistsByphonenumber(phonenumber))
+            return ResponseEntity.ok("{\"status\": \"available\", \"message\": \"Số điện thoại không tồn tại\"}");
+        else
+            return ResponseEntity.ok("{\"status\": \"exists\", \"message\": \"Số điện thoại đã tồn tại\"}");
+    }
+
+    @PostMapping("/resetpassword")
+    public ResponseEntity<?> resetPassword(
+            @Valid @RequestBody UserLoginDTO userLoginDTO,
+            BindingResult result
+    ) {
+        try {
+            if (result.hasErrors()) {
+                List<String> errorMessages = result.getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
+                return ResponseEntity.badRequest().body(errorMessages);
+            }
+            return ResponseEntity.ok(userService.resetPassword(userLoginDTO.getPhonenumber(), userLoginDTO.getPassword()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

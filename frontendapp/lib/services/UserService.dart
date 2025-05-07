@@ -116,4 +116,53 @@ class UserService {
       throw Exception('Lỗi khi upload ảnh: $e');
     }
   }
+
+  Future<bool> checkExistingPhoneNumber(String phoneNumber) async {
+    try {
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/users/checkexistphonenumber/$phoneNumber');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == 'exists';
+      } else {
+        throw Exception('Lỗi kiểm tra số điện thoại: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi kiểm tra số điện thoại: $e');
+    }
+  }
+
+  Future<bool> checkDoesNotExistingPhoneNumber(String phoneNumber) async {
+    try {
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/users/checkdoesnotexistphonenumber/$phoneNumber');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == 'exists';
+      } else {
+        throw Exception('Lỗi kiểm tra số điện thoại: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi kiểm tra số điện thoại: $e');
+    }
+  }
+
+  Future<void> resetPassword(UserLoginDTO userLoginDTO) async {
+    try {
+      final url = Uri.parse('${AppConfig.BASEURL}/api/v1/users/resetpassword');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode(userLoginDTO.toJson()),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi reset mật khẩu: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi reset mật khẩu: $e');
+    }
+  }
 }

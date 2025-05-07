@@ -15,4 +15,7 @@ public interface IUserService {
     User getUserById(int id) throws Exception;
     void saveUser(User user);
     User updateUser(int id, UserDTO userDTO) throws Exception;
+    boolean checkExistsByphonenumber(String phoneNumber);
+    boolean checkDoesNotExistsByphonenumber(String phoneNumber);
+    User resetPassword(String phoneNumber, String password) throws Exception;
 }

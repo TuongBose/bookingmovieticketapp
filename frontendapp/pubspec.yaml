@@ -25,6 +25,10 @@ dependencies:
   mime: ^1.0.0
   http_parser: ^4.0.0
   flutter_cache_manager: ^3.3.1
+  webview_flutter: ^4.8.0
+  crypto: ^3.0.3
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.20.0
 
 dev_dependencies:
   flutter_test:
@@ -38,3 +42,4 @@ flutter:
     - assets/images/logo-bear.png
     - assets/images/login_banner.png
     - assets/images/momo_icon.png
+    - assets/images/vnpay_icon.png

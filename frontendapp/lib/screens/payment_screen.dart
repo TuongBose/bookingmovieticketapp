@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:frontendapp/screens/payment_webview.dart';
 import 'package:intl/intl.dart';
 import '../app_config.dart';
 import '../dtos/BookingDTO.dart';
@@ -47,8 +51,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     try {
-      // Kiểm tra trạng thái đăng nhập và thông tin người dùng
-      print('Checking login status...');
       if (!AppConfig.isLogin) {
         throw Exception('Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.');
       }
@@ -56,10 +58,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
         throw Exception('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
       }
 
-      print('User logged in. User ID: ${AppConfig.currentUser!.id}');
+      final totalPriceAfterDiscount = widget.totalPrice - _starsDiscount;
 
-      // 1. Tạo Booking với userId từ Config.currentUser
-      print('Creating booking...');
+      if (_selectedPaymentMethod == 'vnpay') {
+        final vnPayUrl = _generateVNPayUrl(totalPriceAfterDiscount.toDouble());
+
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PaymentWebView(
+                paymentUrl: vnPayUrl.toString(),
+                paymentMethod: 'vnpay',
+                showTimeId: widget.showTimeId,
+                totalPrice: totalPriceAfterDiscount,
+                selectedSeats: widget.selectedSeatsWithId
+                    .map((seat) => {'id': seat.id, 'number': seat.seatNumber})
+                    .toList(),
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
       final bookingService = BookingService();
       final bookingDTO = BookingDTO(
         userId: AppConfig.currentUser!.id!,
@@ -70,13 +92,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
 
       final bookingId = await bookingService.createBooking(bookingDTO);
-      if (bookingId == null) {
-        throw Exception('Không thể tạo booking. Vui lòng thử lại.');
-      }
-      print('Created booking with ID: $bookingId');
-
-      // 2. Tạo BookingDetail cho từng ghế được chọn
-      print('Creating booking details...');
       final bookingDetailService = BookingDetailService();
       final pricePerSeat = (widget.totalPrice - _starsDiscount) ~/ widget.selectedSeats.length;
 
@@ -87,12 +102,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
           price: pricePerSeat,
         );
         await bookingDetailService.createBookingDetail(bookingDetailDTO);
-        print('Created booking detail for seat ${seat.seatNumber}');
       }
 
-      // 3. Hiển thị thông báo thành công và quay về màn hình chính
       if (mounted) {
-        print('Payment successful. Navigating back to home screen...');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Thanh toán thành công với ${_selectedPaymentMethod}!'),
@@ -146,6 +158,58 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
+  Uri _generateVNPayUrl(double amount) {
+    // Replace these with your VNPay test credentials
+    const String vnpTmnCode = "DMYG01"; // Test TMN Code
+    const String vnpHashSecret = "YOCQHSASMPXXFUQTBLWVQRBOTCLJPAFA"; // Test Hash Secret
+    final String vnpTxnRef = DateTime.now().millisecondsSinceEpoch.toString();
+    final String vnpOrderInfo = "Thanh toan ve xem phim";
+    final String vnpAmount = (amount * 100).toInt().toString();
+    final String vnpCommand = "pay";
+    final String vnpCreateDate = DateFormat("yyyyMMddHHmmss").format(DateTime.now());
+    final String vnpIpAddr = "127.0.0.1";
+    final String vnpVersion = "2.1.0";
+    final String vnpLocale = "vn";
+    final String vnpCurrCode = "VND";
+    final String vnpReturnUrl = "movieticketapp://vnpay_return"; // Use deep link URL scheme
+
+    final params = {
+      'vnp_Version': vnpVersion,
+      'vnp_Command': vnpCommand,
+      'vnp_TmnCode': vnpTmnCode,
+      'vnp_Locale': vnpLocale,
+      'vnp_CurrCode': vnpCurrCode,
+      'vnp_TxnRef': vnpTxnRef,
+      'vnp_OrderInfo': vnpOrderInfo,
+      'vnp_OrderType': 'billpayment',
+      'vnp_Amount': vnpAmount,
+      'vnp_ReturnUrl': vnpReturnUrl,
+      'vnp_IpAddr': vnpIpAddr,
+      'vnp_CreateDate': vnpCreateDate,
+    };
+
+    final String vnpSecureHash = _generateVNPayHash(params, vnpHashSecret);
+    return Uri.https('sandbox.vnpayment.vn', '/paymentv2/vpcpay.html', {
+      ...params,
+      'vnp_SecureHash': vnpSecureHash,
+    });
+  }
+
+  String _generateVNPayHash(Map<String, String> params, String secretKey) {
+    final sortedParams = Map.fromEntries(
+        params.entries.toList()..sort((a, b) => a.key.compareTo(b.key))
+    );
+
+    final hashData = sortedParams.entries
+        .map((e) => '${e.key}=${e.value}')
+        .join('&');
+
+    final hmacSha512 = Hmac(sha512, utf8.encode(secretKey));
+    final hash = hmacSha512.convert(utf8.encode(hashData));
+
+    return hash.toString().toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
@@ -194,7 +258,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               height: 120,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                print('Error loading movie poster: $error');
                                 return Container(
                                   width: 80,
                                   height: 120,
@@ -425,8 +488,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               width: 30,
                               height: 30,
                               errorBuilder: (context, error, stackTrace) {
-                                print('Error loading momo icon: $error');
-                                return const Icon(Icons.broken_image, size: 30);
+                                return const Icon(Icons.account_balance, size: 30);
+                              },
+                            ),
+                          ),
+                          _buildPaymentMethodOption(
+                            'VNPay - Thẻ ATM / Internet Banking',
+                            'vnpay',
+                            icon: Image.asset(
+                              'assets/images/vnpay_icon.png',
+                              width: 30,
+                              height: 30,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.account_balance, size: 30);
                               },
                             ),
                           ),
