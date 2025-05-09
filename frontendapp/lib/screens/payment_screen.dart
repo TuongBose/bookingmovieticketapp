@@ -160,8 +160,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Uri _generateVNPayUrl(double amount) {
     // Replace these with your VNPay test credentials
-    const String vnpTmnCode = "DMYG01"; // Test TMN Code
-    const String vnpHashSecret = "YOCQHSASMPXXFUQTBLWVQRBOTCLJPAFA"; // Test Hash Secret
+    const String vnpTmnCode = "OZYHVEZ5"; // Test TMN Code
+    const String vnpHashSecret = "8KWHSG7DRHHXBD2FR0IVE60BG1W84G0U"; // Test Hash Secret
     final String vnpTxnRef = DateTime.now().millisecondsSinceEpoch.toString();
     final String vnpOrderInfo = "Thanh toan ve xem phim";
     final String vnpAmount = (amount * 100).toInt().toString();
@@ -196,18 +196,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   String _generateVNPayHash(Map<String, String> params, String secretKey) {
+    // Sắp xếp tham số theo thứ tự alphabet
     final sortedParams = Map.fromEntries(
-        params.entries.toList()..sort((a, b) => a.key.compareTo(b.key))
-    );
+        params.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
 
+    // Tạo chuỗi hashData
     final hashData = sortedParams.entries
-        .map((e) => '${e.key}=${e.value}')
+        .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
         .join('&');
 
+    // Tạo chữ ký bằng HMAC-SHA512
     final hmacSha512 = Hmac(sha512, utf8.encode(secretKey));
     final hash = hmacSha512.convert(utf8.encode(hashData));
 
-    return hash.toString().toUpperCase();
+    // Chuyển đổi thành chuỗi hex và in hoa
+    final hashString = hash.bytes
+        .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+        .join()
+        .toUpperCase();
+
+    // Debug
+    print('Hash data: $hashData');
+    print('Generated hash: $hashString');
+
+    return hashString;
   }
 
   @override
