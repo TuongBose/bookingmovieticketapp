@@ -43,3 +43,5 @@ flutter:
     - assets/images/login_banner.png
     - assets/images/momo_icon.png
     - assets/images/vnpay_icon.png
+    - assets/images/zalopay_icon.png
+    - assets/images/shopeepay_icon.png

@@ -488,9 +488,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildPaymentMethodOption(
-                            'OnePay - Visa, Master, JCB,... / ATM / QR Ngân hàng / Apple Pay',
-                            'onepay',
-                            icon: const Icon(Icons.credit_card),
+                            'ShoppePay',
+                            'shopeepay',
+                            icon: Image.asset(
+                              'assets/images/shopeepay_icon.png',
+                              width: 30,
+                              height: 30,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.account_balance, size: 30);
+                              },
+                            ),
+                          ),
+                          _buildPaymentMethodOption(
+                            'ZaloPay',
+                            'zalopay',
+                            icon: Image.asset(
+                              'assets/images/zalopay_icon.png',
+                              width: 30,
+                              height: 30,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.account_balance, size: 30);
+                              },
+                            ),
                           ),
                           _buildPaymentMethodOption(
                             'Ví Momo',
