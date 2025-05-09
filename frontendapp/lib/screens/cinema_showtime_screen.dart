@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import '../app_config.dart';
 import '../models/cinema.dart';
 import '../models/movie.dart';
@@ -136,6 +137,74 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
     }
   }
 
+  // Hàm mở ứng dụng Google Maps trên điện thoại
+  Future<void> _openGoogleMaps() async {
+    if (widget.cinema.coordinates.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tọa độ của rạp không khả dụng')),
+      );
+      return;
+    }
+
+    try {
+      // Tách tọa độ từ chuỗi "latitude,longitude"
+      final coordinates = widget.cinema.coordinates.split(',');
+      if (coordinates.length != 2) {
+        throw Exception('Định dạng tọa độ không hợp lệ');
+      }
+
+      final latitude = double.parse(coordinates[0].trim());
+      final longitude = double.parse(coordinates[1].trim());
+      final cinemaName = Uri.encodeComponent(widget.cinema.name);
+
+      // URL cho trình duyệt web (sẽ được sử dụng nếu ứng dụng Google Maps không khả dụng)
+      final Uri fallbackUrl = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude&query_place_id=${widget.cinema.name}'
+      );
+
+      // Thử mở ứng dụng Google Maps trước
+      final Uri mapsUrl = Uri.parse(
+          'geo:$latitude,$longitude?q=$latitude,$longitude($cinemaName)'
+      );
+
+      print('Trying to launch URL: $mapsUrl');
+
+      if (await canLaunchUrl(mapsUrl)) {
+        await launchUrl(
+          mapsUrl,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+      // Nếu không mở được, thử dùng URL schema của Google Maps
+      else {
+        final Uri googleMapsUrl = Uri.parse(
+            'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude'
+        );
+
+        if (await canLaunchUrl(googleMapsUrl)) {
+          await launchUrl(
+            googleMapsUrl,
+            mode: LaunchMode.externalApplication,
+          );
+        }
+        // Nếu không, mở bản đồ trong trình duyệt
+        else if (await canLaunchUrl(fallbackUrl)) {
+          await launchUrl(
+            fallbackUrl,
+            mode: LaunchMode.externalApplication,
+          );
+        } else {
+          throw 'Không thể mở ứng dụng bản đồ hoặc trình duyệt web';
+        }
+      }
+    } catch (e) {
+      print('Error launching Google Maps: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi mở Google Maps: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,6 +248,13 @@ class _CinemaShowtimesScreenState extends State<CinemaShowTimesScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.gps_fixed, color: Colors.blue),
+            onPressed: _openGoogleMaps,
+            tooltip: 'Xem trên bản đồ',
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
