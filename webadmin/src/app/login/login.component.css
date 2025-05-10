@@ -45,5 +45,28 @@
   }
   
   .divider-nonspace {
-    margin-bottom: 10px;
-  }
+  height: 10px; /* Giữ nguyên khoảng cách giữa input và lỗi */
+}
+
+.error-message-wrapper {
+  margin-bottom: 10px;
+}
+
+
+.form-group .form-control {
+  border: none;
+  border-bottom: 1px solid #ddd;
+  border-radius: 0;
+  padding: 0.5rem 0;
+  transition: border-color 0.3s;
+}
+
+.form-group .form-control:focus {
+  border-color: #5c4ac7;
+  box-shadow: none;
+}
+
+.invalid-feedback {
+  font-size: 0.75rem;
+  display: block !important; /* Đảm bảo hiển thị lỗi */
+}
