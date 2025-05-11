@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import '../app_config.dart';
 import '../dtos/BookingDTO.dart';
 import '../models/booking.dart';
-import '../models/bookingdetail.dart';
 
 class BookingService {
   Future<int> createBooking(BookingDTO bookingDTO) async {

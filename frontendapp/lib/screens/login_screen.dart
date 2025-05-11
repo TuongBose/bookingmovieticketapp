@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontendapp/services/UserService.dart';
 import 'package:frontendapp/screens/reset_password_screen.dart';
 import 'package:frontendapp/dtos/UserLoginDTO.dart';
-import 'package:frontendapp/models/user.dart';
 import 'package:frontendapp/app_config.dart';
 
 class DangNhapScreen extends StatefulWidget {

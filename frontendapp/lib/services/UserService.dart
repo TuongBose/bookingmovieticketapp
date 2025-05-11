@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:frontendapp/dtos/UserDTO.dart';
 import 'package:frontendapp/dtos/UserLoginDTO.dart';
 import 'package:http/http.dart' as http;

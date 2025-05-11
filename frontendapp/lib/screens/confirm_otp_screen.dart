@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:frontendapp/dtos/UserDTO.dart';
 import 'package:frontendapp/dtos/UserLoginDTO.dart';
 import 'package:frontendapp/services/UserService.dart';
-import 'account_screen.dart';
 
 class ConfirmOTPScreen extends StatefulWidget {
   final String verificationId;

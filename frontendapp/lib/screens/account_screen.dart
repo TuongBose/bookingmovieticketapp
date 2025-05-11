@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'register_screen.dart';
 import 'login_screen.dart';
 import 'settings_screen.dart';
